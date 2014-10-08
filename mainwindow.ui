@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>999</width>
+    <height>586</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>GTEA</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QTreeWidget" name="treeWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>260</y>
+      <width>256</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhNone</set>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="headerHidden">
+     <bool>true</bool>
+    </property>
+    <property name="expandsOnDoubleClick">
+     <bool>false</bool>
+    </property>
+    <attribute name="headerVisible">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string>测评项</string>
+     </property>
+    </column>
+    <item>
+     <property name="text">
+      <string>ASI</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>Aconstic</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>source</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>material</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>bounding</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+       <item>
+        <property name="text">
+         <string>示例1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>示例2</string>
+        </property>
+       </item>
+      </item>
+      <item>
+       <property name="text">
+        <string>initial</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>general</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+     </item>
+     <item>
+      <property name="text">
+       <string>structure</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>material</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>bounding</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+       <item>
+        <property name="text">
+         <string>示例1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>示例2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>示例3</string>
+        </property>
+       </item>
+      </item>
+      <item>
+       <property name="text">
+        <string>initial</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>load</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>general</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res.qrc">
+         <normaloff>:/new/images/off.png</normaloff>:/new/images/off.png</iconset>
+       </property>
+      </item>
+     </item>
+     <item>
+      <property name="text">
+       <string>general</string>
+      </property>
+     </item>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>470</y>
+      <width>621</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>参数说明</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>999</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="action_2"/>
+    <addaction name="action_3"/>
+    <addaction name="action_4"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>求解</string>
+    </property>
+    <addaction name="action_6"/>
+    <addaction name="actionTransient"/>
+    <addaction name="actionIteration"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>执行</string>
+    </property>
+    <addaction name="action_7"/>
+    <addaction name="action_8"/>
+   </widget>
+   <widget class="QMenu" name="menu_4">
+    <property name="title">
+     <string>帮助</string>
+    </property>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
+   <addaction name="menu_4"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_2"/>
+   <addaction name="action_3"/>
+   <addaction name="action_4"/>
+  </widget>
+  <action name="action_2">
+   <property name="text">
+    <string>新建</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>保存</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>退出</string>
+   </property>
+  </action>
+  <action name="action_6">
+   <property name="text">
+    <string>初始化</string>
+   </property>
+  </action>
+  <action name="actionTransient">
+   <property name="text">
+    <string>Transient</string>
+   </property>
+  </action>
+  <action name="actionIteration">
+   <property name="text">
+    <string>Iteration</string>
+   </property>
+  </action>
+  <action name="action_7">
+   <property name="text">
+    <string>运行</string>
+   </property>
+  </action>
+  <action name="action_8">
+   <property name="text">
+    <string>重新运行</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

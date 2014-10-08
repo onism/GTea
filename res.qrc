@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/new">
+        <file>images/new.png</file>
+        <file>images/3dpic.png</file>
+        <file>images/off.png</file>
+        <file>images/on.png</file>
+        <file>images/formula1.png</file>
+        <file>images/formula2.png</file>
+        <file>images/formula3.png</file>
+        <file>images/formula4.png</file>
+        <file>images/formula5.png</file>
+        <file>images/formula6.png</file>
+    </qresource>
+</RCC>
