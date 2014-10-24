@@ -52,10 +52,11 @@ void BuildQtTreeView::apply(osg::Node& node)
 //    if(node.className()!="")
 //        nodeName = "[" + QString::fromStdString(node.className()) + "]";
 
-    if(node.getName()!="")
+    if(node.getName()!=""){
         nodeName = " " + QString::fromStdString(node.getName());
-    if (nodeName.isEmpty())
-        nodeName = QObject::tr("[<unknow_type>] <unnamed>");
+    }
+//    if (nodeName.isEmpty())
+//        nodeName = QObject::tr("[<unknow_type>] <unnamed>");
 
     TreeViewItem *item = new TreeViewItem(_parents.top());
     item->setCheckState(0, Qt::Checked);
@@ -77,12 +78,19 @@ void BuildQtTreeView::apply(osg::Node& node)
     }
     else if (dynamic_cast<osg::Group*>(&node))
     {
-//        if (dynamic_cast<osg::MatrixTransform*>(&node))
-//             item->setData(0, Qt::DecorationRole/*, QIcon(":/icons/TreeView/Matrix.png")*/);
+//         if (dynamic_cast<osg::MatrixTransform*>(&node))
+//              isGroup = false;
+//         else
+//         {
+             _parents.push(item);
+             isGroup = true;
+ //        }
+
+
+            // item->setData(0, Qt::DecorationRole/*, QIcon(":/icons/TreeView/Matrix.png")*/);
 //        else
 //            item->setData(0, Qt::DecorationRole/*, QIcon(":/icons/TreeView/Group.png")*/);
-        _parents.push(item);
-        isGroup = true;
+
     }
     else if (dynamic_cast<osg::Billboard*>(&node))
     {

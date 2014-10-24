@@ -10,17 +10,17 @@ class SQLHelper
 {
 public:
     SQLHelper();
-    bool openSQLiteDB();
-    void closeSQLiteDB();
-    bool createTable(QString sqlstring);
-    bool insertRow(QString sqlstring);
-    bool selectAll();
-    bool deleteRow(QString sqlstring);
-    bool deleteAll();
-    QSqlError lastError();
-
-  private:
-      QSqlDatabase dbLink;
+    static  bool openSQLiteDB();
+    static  void closeSQLiteDB();
+    static bool createTable(QString sqlstring);
+    static bool insertRow(QString sqlstring);
+    static  bool selectAll();
+    static   bool deleteRow(QString sqlstring);
+    static  bool deleteAll();
+    static  QSqlError lastError();
+    static  bool  update(QString sqlstring);
+    static QList<QString> selectbysql(QString sqlstring);
+    static QSqlDatabase dbLink;
 
   signals:
 

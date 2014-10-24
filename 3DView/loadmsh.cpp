@@ -298,6 +298,7 @@ int LoadMsh::getFaceNameById(int zone_id, char *buf){
 
 int LoadMsh::drawmsh()
 {
+    face_wall_names.clear();
              int faces_number = faces_nodes.size();
              qDebug()<<"draw"<<faces_number;
              oroot = new osg::Group;
@@ -317,7 +318,7 @@ int LoadMsh::drawmsh()
                      if( getFaceNameById(f.zone_id,buf)!=2)
                          continue;
                       geode->setName(buf);
-                       qDebug()<<f.facedatas.size();
+                      face_wall_names.push_back(QString::fromLatin1(buf));
                       for(int j = 0; j< f.facedatas.size();j++){
                  //        qDebug()<<j;
                           osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();

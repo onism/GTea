@@ -277,9 +277,12 @@ ViewerQT::ViewerQT(QWidget * parent, const char * name, const QGLWidget * shareW
     osg::Camera* camera = createHUD();
     addSlave(camera, false);
     m_rpSceneGroupRoot->addChild(camera);
+    osgText::Text* text = new osgText::Text;
+    m_rpSceneGroupRoot->addChild( createHUD_viewPoint( text));//加入HUD文字
 //    pickHandler = new PickHandler;
 //    addEventHandler(pickHandler);
-    addEventHandler(new PickDragHandler());
+
+    addEventHandler(new PickDragHandler(text));
     osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator =
             new osgGA::KeySwitchMatrixManipulator;
     keyswitchManipulator->addMatrixManipulator(1,"Trackball",new osgGA::TrackballManipulator());
@@ -340,4 +343,48 @@ void ViewerQT::ClearModelNode()
 void ViewerQT::ClearModelNodeByName(osg::ref_ptr<osg::Node> node)
 {
     m_rpSceneGroupRoot->removeChild(node);
+}
+
+
+
+osg::Node* ViewerQT::createHUD_viewPoint( osgText::Text* text)
+
+{
+
+
+    //设置字体
+    std::string caiyun("fonts/STCAIYUN.TTF");//此处设置的是汉字字体
+    text->setFont(caiyun);
+    //设置文字显示的位置
+    osg::Vec3 position(20.0f,550.0f,0.0f);
+    text->setPosition(position);
+    text->setColor( osg::Vec4( 1, 1, 0, 1));
+    text->setText(L"");//设置显示的文字
+    text->setCharacterSize(10);
+    text->setDataVariance(osg::Object::DYNAMIC);//一定要设置字体为动态，否则程序会卡住，死在那里。（参照osgcatch）
+    //几何体节点
+    osg::Geode* geode = new osg::Geode();
+    geode->addDrawable( text );//将文字Text作这drawable加入到Geode节点中
+    //设置状态
+    osg::StateSet* stateset = geode->getOrCreateStateSet();
+    stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);//关闭灯光
+    stateset->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);//关闭深度测试
+    //打开GL_BLEND混合模式（以保证Alpha纹理正确）
+    stateset->setMode(GL_BLEND,osg::StateAttribute::ON);
+    //相机
+    osg::Camera* camera = new osg::Camera;
+    //设置透视矩阵
+    camera->setProjectionMatrix(osg::Matrix::ortho2D(0,600,0,600));//正交投影
+    //设置绝对参考坐标系，确保视图矩阵不会被上级节点的变换矩阵影响
+    camera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+    //视图矩阵为默认的
+    camera->setViewMatrix(osg::Matrix::identity());
+    //设置背景为透明，否则的话可以设置ClearColor
+    camera->setClearMask(GL_DEPTH_BUFFER_BIT);
+    camera->setAllowEventFocus( false);//不响应事件，始终得不到焦点
+    //设置渲染顺序，必须在最后渲染
+    camera->setRenderOrder(osg::Camera::POST_RENDER);
+    camera->addChild(geode);//将要显示的Geode节点加入到相机
+    return camera;
+
 }

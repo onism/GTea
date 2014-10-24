@@ -5,7 +5,7 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgGA/TrackballManipulator>
 #include <osgDB/ReadFile>
-
+#include <osgText/Text>
 
 #include <QtCore/QString>
 #include <QtCore/QTimer>
@@ -109,6 +109,8 @@ public:
     void ClearModelNode();
     void ClearModelNodeByName(osg::ref_ptr<osg::Node> node);
     osg::Camera*  createHUD();
+    osg::Node* createHUD_viewPoint( osgText::Text* text);
+
 public:
     osg::ref_ptr<osgGA::TrackballManipulator>	m_rpTrackball;
     osg::ref_ptr<osg::Group>	m_rpSceneGroupRoot;

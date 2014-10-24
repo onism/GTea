@@ -31,12 +31,22 @@ SOURCES += main.cpp\
     3DView/buildqttreeview.cpp \
     3DView/TreeViewItem.cpp \
     3DView/loadmsh.cpp \
-    3DView/CGNSIO.cpp \
     3DView/pickdraghandler.cpp \
     3DView/newdragger.cpp \
     3DView/postprocessing.cpp \
     setprodialog.cpp \
-    sqlhelper.cpp
+    sqlhelper.cpp\
+    location.cpp \
+    material.cpp \
+    modufyprodialog.cpp \
+    changepositiondialog.cpp \
+    3DView/findnodevistor.cpp \
+    3DView/removedata.cpp \
+    3DView/db.cpp \
+    3DView/dbcgns.cpp \
+    3DView/dbcgns_io.cpp \
+    3DView/corelib.cpp \
+    savefiledialog.cpp
 
 
 
@@ -61,7 +71,6 @@ HEADERS  += mainwindow.h \
     3DView/loadmsh.h \
     3DView/loadcgns.h \
     3DView/Cgns_solution_struct.h \
-    3DView/CGNSIO.h \
     3DView/pickdraghandler.h \
     3DView/newdragger.h \
     3DView/postprocessing.h \
@@ -70,7 +79,19 @@ HEADERS  += mainwindow.h \
     3DView/Interpolater.h \
     3DView/BaseData.h \
     setprodialog.h \
-    sqlhelper.h
+    sqlhelper.h\
+ location.h \
+    material.h \
+    modufyprodialog.h \
+    changepositiondialog.h \
+    3DView/findnodevistor.h \
+    3DView/removedata.h \
+    3DView/db.h \
+    3DView/dbcgns.h \
+    3DView/dbcgns_io.h \
+    3DView/corestruct.h \
+    3DView/corelib.h \
+    savefiledialog.h
 
 
 FORMS    += mainwindow.ui \
@@ -85,7 +106,12 @@ FORMS    += mainwindow.ui \
     generalaco.ui \
     generalstr.ui \
     output.ui \
-    setprodialog.ui
+    setprodialog.ui\
+    location.ui \
+    material.ui \
+    modufyprodialog.ui \
+    changepositiondialog.ui \
+    savefiledialog.ui
 
 
 RESOURCES += \

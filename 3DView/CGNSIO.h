@@ -1,131 +1,153 @@
 #ifndef CGNSIO_H
 #define CGNSIO_H
+#include "corestruct.h"
 /* Structure Declarations */
 
 /* Structure for Descriptor */
-typedef struct _DESC {
-    int id;
-    char name[33];
-    char *desc;
-} DESC;
+//typedef struct _DESC {
+//    int id;
+//    char name[33];
+//    char *desc;
+//} DESC;
 
-/* Structure for Vertex */
-typedef struct _VERTEX {
-    int id;
-    double x, y, z, w;
-} VERTEX;
+///* Structure for Vertex */
+//typedef struct _VERTEX {
+//    int id;
+//    double x, y, z, w;
+//} VERTEX;
 
-/* Structure for Element Set */
-typedef struct _ELEMSET {
-    int id;
-    char name[33];
-    int type;
-    int start;
-    int end;
-    int nbndry;
-    int *conn;
-    int *parent;
-} ELEMSET;
+///* Structure for Element Set */
+//typedef struct _ELEMSET {
+//    int id;
+//    char name[33];
+//    int type;
+//    int start;
+//    int end;
+//    int nbndry;
+//    int *conn;
+//    int *parent;
+//} ELEMSET;
 
-/* Structure for Interface */
-typedef struct _INTERFACE {
-    int id;
-    char name[33];
-    int range[3][2];
-    char d_name[33];
-    int d_range[3][2];
-    int transform[3];
-    int d_zone;
-} INTERFACES;
+///* Structure for Interface */
+//typedef struct _INTERFACE {
+//    int id;
+//    char name[33];
+//    int range[3][2];
+//    char d_name[33];
+//    int d_range[3][2];
+//    int transform[3];
+//    int d_zone;
+//} INTERFACES;
 
-/* Structure for Grid Connectivity */
-typedef struct _CONNECT {
-    int id;
-    char name[33];
-    int type;
-    int location;
-    int ptype;
-    int npnts;
-    int *pnts;
-    char d_name[33];
-    int d_ztype;
-    int d_ptype;
-    int d_npnts;
-    int *d_pnts;
-    int d_zone;
-} CONNECT;
+///* Structure for Grid Connectivity */
+//typedef struct _CONNECT {
+//    int id;
+//    char name[33];
+//    int type;
+//    int location;
+//    int ptype;
+//    int npnts;
+//    int *pnts;
+//    char d_name[33];
+//    int d_ztype;
+//    int d_ptype;
+//    int d_npnts;
+//    int *d_pnts;
+//    int d_zone;
+//} CONNECT;
 
-/* Structure for Boundary Condition */
-typedef struct _BOCO {
-    int id;
-    char name[33];
-    int type;
-    int ptype;
-    int npnts;
-    int *pnts;
-    int n_index[3];
-    int n_cnt;
-    int n_type;
-    double *n_list;
-} BOCO;
+///* Structure for Boundary Condition */
+//typedef struct _BOCO {
+//    int id;
+//    char name[33];
+//    int type;
+//    int ptype;
+//    int npnts;
+//    int *pnts;
+//    int n_index[3];
+//    int n_cnt;
+//    int n_type;
+//    double *n_list;
+//} BOCO;
 
-/* Structure for Field */
-typedef struct _FIELD {
-    int id;
-    char name[33];
-    int datatype;
-    int units[5];
-    int dataclass;
-    int convtype;
-    double dataconv[2];
-    int exptype;
-    double exponent[5];
-    double *data;
-} FIELD;
+///* Structure for Field */
+//typedef struct _FIELD {
+//    int id;
+//    char name[33];
+//    int datatype;
+//    int units[5];
+//    int dataclass;
+//    int convtype;
+//    double dataconv[2];
+//    int exptype;
+//    double exponent[5];
+//    double *data;
+//} FIELD;
 
-/* Structure for Solution */
-typedef struct _SOLUTION {
-    int id;
-    char name[33];
-    int location;
-    int rind[3][2];
-    int size;
-    int units[5];
-    int dataclass;
-    int nflds;
-    FIELD *flds;
-    int ndesc;
-    DESC *desc;
-} SOLUTION;
+///* Structure for Solution */
+//typedef struct _SOLUTION {
+//    int id;
+//    char name[33];
+//    int location;
+//    int rind[3][2];
+//    int size;
+//    int units[5];
+//    int dataclass;
+//    int nflds;
+//    FIELD *flds;
+//    int ndesc;
+//    DESC *desc;
+//} SOLUTION;
 
-/* Structure for Zone */
-typedef struct _ZONE {
-    int id;
-    char name[33];
-    int type;
-    int idim;
-    int dim[3];
-    int units[5];
-    int dataclass;
-    int datatype;
-    int vertflags;
-    int nverts;
-    VERTEX *verts;
-    int nesets;
-    ELEMSET *esets;
-    int nints;
-    INTERFACES *ints;
-    int nconns;
-    CONNECT *conns;
-    int nbocos;
-    BOCO *bocos;
-    int nsols;
-    SOLUTION *sols;
-    void *user;
-    int ndesc;
-    DESC *desc;
-} ZONE;
+///* Structure for Zone */
+//typedef struct _ZONE {
+//    int id;
+//    char name[33];
+//    int type;
+//    int idim;
+//    int dim[3];
+//    int units[5];
+//    int dataclass;
+//    int datatype;
+//    int vertflags;
+//    int nverts;
+//    VERTEX *verts;
+//    int nesets;
+//    ELEMSET *esets;
+//    int nints;
+//    INTERFACES *ints;
+//    int nconns;
+//    CONNECT *conns;
+//    int nbocos;
+//    BOCO *bocos;
+//    int nsols;
+//    SOLUTION *sols;
+//    void *user;
+//    int ndesc;
+//    DESC *desc;
+//} ZONE;
 
+///* Struture for Base */
+//   typedef struct _BASE {
+//       int id;
+//       int celldim;
+//       int phydim;
+//       int baseclass;
+//       int baseunits[5];
+//       char name[33];
+//       int nzones;
+//       ZONE *zones;
+//       int ndesc;
+//       DESC *desc;
+//   } BASE;
+
+//   /* Struture for CFDDB */
+//   typedef struct _ROOT {
+//       int nbases;
+//       BASE *bases;
+//       int ndesc;
+//       DESC *desc;
+//   } ROOT;
 /* Variable Declarations */
 
 extern float Version;
@@ -149,7 +171,7 @@ void copy_file(char *oldfile, char *newfile);
 ZONE *new_zone(int count);
 VERTEX *new_vertex(int nverts);
 ELEMSET *new_elemset(int nesets);
-INTERFACES *new_interface(int nints);
+INTERFACE_CGNS *new_interface(int nints);
 CONNECT *new_connect(int nconns);
 BOCO *new_boco(int nbocos);
 SOLUTION *new_solution(int nsols);
@@ -172,7 +194,16 @@ int read_zone_boco(int nz);
 int read_zone_solution(int nz);
 int read_solution_field(int nz, int ns, int nf);
 int read_units(int units[5]);
-
+void write_cgns(void);
+void write_zones(void);
+void write_zone_data(int izone);
+void write_zone_grid(int izone);
+void write_zone_element(int izone);
+void write_zone_interface(int izone);
+void write_zone_connect(int izone);
+void write_zone_boco(int izone);
+void write_zone_solution(int izone, int isol);
+void write_solution_field(int izone, int isol, int ifld);
 void print_interface(ZONE *zone);
 void print_connect(ZONE *zone);
 void print_solution(ZONE *zone);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>448</width>
-    <height>331</height>
+    <width>431</width>
+    <height>317</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>290</y>
+     <y>270</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -32,8 +32,8 @@
   <widget class="QStackedWidget" name="stackedWidget">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>120</y>
+     <x>50</x>
+     <y>90</y>
      <width>341</width>
      <height>161</height>
     </rect>
@@ -380,51 +380,8 @@
     </property>
    </item>
   </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>72</x>
-     <y>89</y>
-     <width>24</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>位置</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboBox_2">
-   <property name="geometry">
-    <rect>
-     <x>102</x>
-     <y>89</y>
-     <width>69</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <item>
-    <property name="text">
-     <string>zmin</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>xmin</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>ymin</string>
-    </property>
-   </item>
-  </widget>
   <zorder>label</zorder>
   <zorder>comboBox</zorder>
-  <zorder>label_2</zorder>
-  <zorder>comboBox_2</zorder>
   <zorder>buttonBox</zorder>
   <zorder>stackedWidget</zorder>
  </widget>

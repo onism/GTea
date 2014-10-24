@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include <QPalette>
@@ -45,6 +45,7 @@
 #include "3DView/newdragger.h"
 #include "3DView/InverseDist.h"
 #include "3DView/BaseData.h"
+#include "changepositiondialog.h"
 #include "dialog_test.h"
 #include "initial_aco.h"
 #include "initial_str.h"
@@ -59,6 +60,16 @@
 #include "3DView/CGNSIO.h"
 #include  "setprodialog.h"
 #include "sqlhelper.h"
+#include "material.h"
+#include "3DView/findnodevistor.h"
+#include "modufyprodialog.h"
+
+#include <QSqlQuery>
+#include "3DView/removedata.h"
+#include "savefiledialog.h"
+#include "3DView/dbcgns.h"
+#include "3DView/dbcgns_io.h"
+#include "3DView/corelib.h"
 //#include "3DView/readcgnasolution.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -95,7 +106,14 @@ MainWindow::MainWindow(QWidget *parent) :
       QWidget *mwidget = new QWidget;
       mwidget->setLayout(mainlayout);
       setCentralWidget(mwidget);
-      SqlHelper = new SQLHelper();
+     // SqlHelper = new SQLHelper();
+        SQLHelper::openSQLiteDB();
+        modify_dlg = new ModufyProDialog;
+        change_postion_dlg = new ChangePositionDialog;
+        qRegisterMetaType<ChangeObject>("ChangeObject");
+      connect(modify_dlg,SIGNAL(emit_signal_update()),this,SLOT(updateBounding()));
+      connect(change_postion_dlg,SIGNAL(update_position(ChangeObject)),this,SLOT(change_map_objects(ChangeObject)));
+    //  connect(change_postion_dlg,SIGNAL(update_position(QString,QString,float,float,float,float)),this,SLOT(change_map_objects(QString,QString,float ,float,float,float)));
 }
 
 MainWindow::~MainWindow()
@@ -137,7 +155,7 @@ void MainWindow::createMenus()
     // create file menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openModelAct);
-
+    fileMenu->addAction(change_postion_Act);
 //    fileMenu->addSeparator();
 //    fileMenu->addAction(exitAct);
 
@@ -158,6 +176,17 @@ void MainWindow::createActions()
     openModelAct->setStatusTip(tr("open a  model"));
     connect(openModelAct, SIGNAL(triggered()), this, SLOT(openModel()));
 
+    change_postion_Act = new QAction(/*QIcon("../images/open.png"),*/ tr("&change position"), this);
+
+
+    connect(change_postion_Act, SIGNAL(triggered()), this, SLOT(changeDlg()));
+
+}
+
+void MainWindow::changeDlg()
+{
+    change_postion_dlg->setItem();
+   change_postion_dlg->exec();
 }
 void MainWindow::openModel()
 {
@@ -283,6 +312,7 @@ zone_names.clear();
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),  ".", tr("  Files (*.cgns *.msh *.osg)"));
 
+    fileName = checkfileesist(fileName);
 //     osg::Node* axes = osgDB::readNodeFile(fileName.toLatin1().data());
 
 //     _glWidget->AddModelNode(axes);
@@ -303,33 +333,14 @@ zone_names.clear();
             // loadmsh->oroot->addChild(drawaxis(center,length));
 
 
-//             osgUtil::Optimizer optimizer;
-//             optimizer.optimize(loadmsh->oroot.get());
 
              //add dragger
             if(!loadmsh->oroot)
                 return;
-//            osg::StateSet * state = loadmsh->oroot->getOrCreateStateSet();
-//            state->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-//            osg::ref_ptr<osg::Switch> switchnode = new osg::Switch;
-//            osg::ref_ptr<NewDragger> dragger = new NewDragger;
-//            float scale = loadmsh->oroot->getBound().radius()*1.4;
-//            dragger->setMatrix(osg::Matrix::scale(scale,scale,scale)*osg::Matrix::translate(loadmsh->oroot->getBound().center()));
-//            dragger->setupDefaultGeometry();
-
-//            osg::ref_ptr<osgManipulator::Selection> selection = new osgManipulator::Selection;
-//            selection->addChild(loadmsh->oroot.get());
-//            osg::Vec3 trans = osg::Vec3(0.0,0.0,0.0);
-//            osg::Quat qu = osg::Quat(osg::DegreesToRadians(0.0),osg::Vec3(1.0,0.0,0.0));
-//            selection->setMatrix(osg::Matrix::translate(trans)*osg::Matrix::rotate(qu));
-//            switchnode->addChild(dragger.get());
-//            switchnode->addChild(selection.get());
-//            _glWidget->AddModelNode(switchnode.get());
-//            commandManager->connect(*dragger.get(),*selection.get());
-            osg::ref_ptr<osg::MatrixTransform> transform_1 = new osg::MatrixTransform;
-            transform_1.get()->addChild(addDraggerToScene(loadmsh->oroot.get(),commandManager,"TranslateAxisDragger"));
-
-            _glWidget->AddModelNode(transform_1.get());
+            osg::ref_ptr<osgManipulator::Selection> selection = new osgManipulator::Selection;
+            selection->addChild(loadmsh->oroot.get());
+            selection->setName("selectionroot");
+            _glWidget->AddModelNode(selection.get());
 
 
             // _glWidget->AddModelNode(loadmsh->oroot.get());
@@ -345,15 +356,25 @@ zone_names.clear();
              load_tree->expandAll();
              load_tree->resizeColumnToContents(0);
 
-             int face_size = loadmsh->Face_Names.size();
+             int face_size = loadmsh->face_wall_names.size();
+            // SqlHelper->openSQLiteDB();
+             QString insertsql = "insert into msh (filename,facename) values ('";
              for(int i=0; i < face_size; i++)
              {
-                 QString tmp =QString::fromLatin1(loadmsh->Face_Names.at(i).name);
-                 zone_names.push_back(tmp);
-             }
+                 QString sql = insertsql;
+                 sql += fileName.section("/",-1);
+                 sql += "','";
+                 QString name = loadmsh->face_wall_names.at(i);
 
+                 sql += name.section(" ",0,0);
+                 sql += "')";
+                 //SqlHelper->insertRow(sql);
+                 SQLHelper::insertRow(sql);
+                 zone_names.push_back(name.section(" ",0,0));
+             }
+             SqlHelper->closeSQLiteDB();
             SetProDialog setpro;
-            setpro.setItem(zone_names);
+            setpro.setItem(zone_names,fileName.section("/",-1),2);
             if(setpro.exec() == QDialog::Accepted)
             {
 
@@ -380,9 +401,9 @@ zone_names.clear();
 //readSolutionCgns(cptr);
             if( CGNSopen(cptr)) {
                osg::ref_ptr< osg::Group > root = new osg::Group;
-               root->setName(cptr);
-               SqlHelper->openSQLiteDB();
-
+              // root->setName(cptr);
+              // SqlHelper->openSQLiteDB();
+                root->setName(fileName.section("/",-1).toStdString());
                 for(int i=0;i<1;i++)
                 {
                      CGNSbase(i);
@@ -391,11 +412,15 @@ zone_names.clear();
 
                      for( int j = 0 ; j<  nzones;j++) {
                             CGNSzone(j);
-                           osg::ref_ptr< osg::Group > zoneroot = new osg::Group;
+                            osg::ref_ptr < osg::MatrixTransform > zoneroot = new osg::MatrixTransform ;
+
+                         //  osg::ref_ptr< osg::Group > zoneroot = new osg::Group;
+                       //    rot->addChild(zoneroot.get());
                            qDebug()<<zones[j].nnodes;
                            zoneroot->setName(zones[j].name);
                            QString name_temp = QString::fromLatin1(zones[j].name);
                            zone_names.push_back(name_temp);
+                           add_map_objects(fileName.section("/",-1),name_temp);
                            int regs =  zones[j].nregs;
                            for(int k=0;k<regs;k++)
                            {
@@ -403,23 +428,43 @@ zone_names.clear();
 
                               if(zones[j].regs[k].dim != CellDim)
                               {
-                                  QString insertstring = "insert into cgns (filename,basename,zonename,regname) values( '";
-                                  insertstring += fileName;
+                                  QString insertstring = "insert into cgns (filename,basename,zonename,regname,filepath) values( '";
+                                  insertstring += fileName.section("/",-1);
                                   insertstring += "','";
                                   insertstring +=  QString::fromLatin1(BaseName);
                                   insertstring += "','";
                                   insertstring +=  QString::fromLatin1(zones[j].name);
                                   insertstring += "','";
                                   insertstring +=  QString::fromLatin1(zones[j].regs[k].name);
+                                  insertstring += "','";
+                                  insertstring +=  fileName;
                                   insertstring += "')";
-                                  SqlHelper->insertRow(insertstring);
+                                //  SqlHelper->insertRow(insertstring);
+                                  SQLHelper::insertRow(insertstring);
                                 QString regname = QString::fromLatin1(zones[j].regs[k].name);
                                 reg_names.push_back(regname);
+                              }else {
+                                  QString insertstring = "insert into cgns (filename,basename,zonename,regname,output,filepath) values( '";
+                                  insertstring += fileName.section("/",-1);
+                                  insertstring += "','";
+                                  insertstring +=  QString::fromLatin1(BaseName);
+                                  insertstring += "','";
+                                  insertstring +=  QString::fromLatin1(zones[j].name);
+                                  insertstring += "','";
+                                  insertstring +=  QString::fromLatin1(zones[j].regs[k].name);
+                                  insertstring += "','";
+                                  insertstring += " 1";
+                                  insertstring += "','";
+                                  insertstring +=  fileName;
+                                  insertstring += "')";
+                                //  SqlHelper->insertRow(insertstring);
+                                  qDebug()<<insertstring;
+                                  SQLHelper::insertRow(insertstring);
                               }
                                //zoneroot->addChild(this->drawSolution(j,k).get());
                             }//reg end
-
-                            baseroot->addChild(zoneroot.get());
+                      // baseroot->addChild(rot.get());
+                             baseroot->addChild(zoneroot.get());
                      }//zones end
                      root->addChild(baseroot.get());
                 }// base end
@@ -447,11 +492,11 @@ zone_names.clear();
                 load_tree->addTopLevelItem(visitor.getRoot());
                 load_tree->expandAll();
                 load_tree->resizeColumnToContents(0);
-                SqlHelper->closeSQLiteDB();
+               // SqlHelper->closeSQLiteDB();
 
                 //set pro
                 SetProDialog setpro;
-                setpro.setItem(zone_names);
+                setpro.setItem(zone_names,fileName.section("/",-1),1);
                 if(setpro.exec() == QDialog::Accepted)
                 {
 
@@ -464,7 +509,7 @@ zone_names.clear();
                 QMessageBox::critical(NULL, "critical", "can not open", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
             }
-
+            CGNSclose();
             delete cptr;
             cptr=NULL;
 
@@ -653,151 +698,175 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
     QTreeWidgetItem *parent = item->parent();
 
-    if(parent!=NULL)
-    {
+        if(parent!=NULL)
+        {
 
-    int row = parent->indexOfChild(item);   
-    Dialog_test dlg3;
-    Initial_Aco init_a;
-    Initial_Str init_s;
-    SourceDlg sourcedlg;
-    AddBoundAco addboundingaco;
-    AddBoudingStr addboundingstr;
-    LoadDlg loaddlg;
-    GeneralAco generalaco;
-    GeneralStr generalstr;
-    Output output;
+        int row = parent->indexOfChild(item);
+        Initial_Aco init_a;
+        Initial_Str init_s;
+        SourceDlg sourcedlg;
+        AddBoundAco addboundingaco;
+        AddBoudingStr addboundingstr;
+        LoadDlg loaddlg;
+        GeneralAco generalaco;
+        GeneralStr generalstr;
+        Output output;
+        Material material;
 
-        if(parent->text(0)=="Aconstic"){
+            if(parent->text(0)=="Acoustic"){
+
+                    switch(row){
+                    case 3:
+                        if(init_a.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        updateBounding();
+
+                     break;
+
+    //                case 2:
+    //                {
+    //                    QTreeWidgetItem *item_ = load_tree->currentItem();
+    //                    int childcount = 0;
+    //                    if(item_ == NULL){
+    //                        QMessageBox::information(NULL, tr("Path"), tr("You didn't select any nodes."));
+    //                        break;
+    //                    }else{
+    //                      childcount = item_->childCount();
+    //                      QList<QString> boundingname;
+    //                      qDebug()<<childcount;
+    //                      if(childcount==0){
+    //                          boundingname.push_back(item_->text(0));
+    //                      }else
+    //                      {
+    //                          for(int i=0;i<childcount;i++){
+    //                              boundingname.push_back(item_->child(i)->text(0));
+    //                          }
+    //                      }
+    //                      addboundingaco.setItem(boundingname);
+
+    //                    }
+    //                    if(addboundingaco.exec()==QDialog::Accepted){
+
+
+    //                           item->setIcon(0,QIcon(":/new/images/on.png"));
+    //                           qDebug()<<addboundingaco.str;
+    //                           QTreeWidgetItem *qwt = new QTreeWidgetItem((QStringList)addboundingaco.str);
+    //                           item->addChild(qwt);
+    //                           delete qwt;
+
+    //                           item->addChild(new QTreeWidgetItem((QStringList)addboundingaco.str));
+    //                    }
+    //                    break;
+
+
+                    case 0:
+                        if(sourcedlg.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
+
+                    case 4:
+                        if(generalaco.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
+
+                    case 1:
+                        if(material.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
+
+                    default:
+                        break;
+
+                    }
+    //                if(parent->text(0)=="bounding"){
+    //                    if(addboundingaco.exec()==QDialog::Accepted){
+
+    //                        item->setIcon(0,QIcon(":/new/images/on.png"));
+    //                    }
+    //                }
+
+
+            }
+            if(parent->text(0)=="structure"){
 
                 switch(row){
-                case 3:
-                    if(init_a.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                 break;
-
-                case 2:
-                {
-                    QTreeWidgetItem *item_ = load_tree->currentItem();
-                    int childcount = 0;
-                    if(item_ == NULL){
-                        QMessageBox::information(NULL, tr("Path"), tr("You didn't select any nodes."));
+                    case 2:
+                        if(init_s.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
                         break;
-                    }else{
-                      childcount = item_->childCount();
-                      QList<QString> boundingname;
-                      qDebug()<<childcount;
-                      if(childcount==0){
-                          boundingname.push_back(item_->text(0));
-                      }else
-                      {
-                          for(int i=0;i<childcount;i++){
-                              boundingname.push_back(item_->child(i)->text(0));
-                          }
-                      }
-                      addboundingaco.setItem(boundingname);
 
-                    }
-                    if(addboundingaco.exec()==QDialog::Accepted){
+                    case 3:
+                        if(loaddlg.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
 
+    //                case 1:
 
-                           item->setIcon(0,QIcon(":/new/images/on.png"));
-//                           qDebug()<<addboundingaco.str;
-//                           QTreeWidgetItem *qwt = new QTreeWidgetItem((QStringList)addboundingaco.str);
-//                           item->addChild(qwt);
-//                           delete qwt;
+    //                    if(addboundingstr.exec()==QDialog::Accepted){
+    //                        QTreeWidgetItem *item_ = load_tree->currentItem();
+    //                        int childcount = 0;
+    //                        if(item_ == NULL){
+    //                            QMessageBox::information(NULL, tr("Path"), tr("You didn't select any nodes."));
+    //                        }else{
+    //                          childcount = item_->childCount();
+    //                          QList<QString> boundingname;
+    //                          qDebug()<<childcount;
+    //                          if(childcount>0){
+    //                              boundingname.push_back(item_->text(0));
+    //                          }else
+    //                          {
+    //                              for(int i=0;i<childcount;i++){
+    //                                  boundingname.push_back(item_->child(i)->text(0));
+    //                              }
+    //                          }
 
-                           item->addChild(new QTreeWidgetItem((QStringList)addboundingaco.str));
-                    }
-                    break;
+    //                        }
+    //                           item->setIcon(0,QIcon(":/new/images/on.png"));
+    //                           qDebug()<<addboundingaco.str;
+    //                           QTreeWidgetItem *qwt = new QTreeWidgetItem((QStringList)addboundingaco.str);
+    //                           item->addChild(qwt);
+    //                           delete qwt;
 
-//                case 1:
-//                    dlg3.exec();
-//                    item->setIcon(0,QIcon(":/new/images/on.png"));
-//                    break;
+    //                           item->addChild(new QTreeWidgetItem((QStringList)addboundingaco.str));
+    //                    }
+    //                    break;
+
+                    case 4:
+                        if(generalstr.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
+
+                    case 0:
+                        if(material.exec()==QDialog::Accepted)
+                            item->setIcon(0,QIcon(":/new/images/on.png"));
+                        break;
+
+                    default:
+                        break;
+
                 }
-                case 0:
-                    if(sourcedlg.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                    break;
-
-                case 4:
-                    if(generalaco.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                    break;
-
-                default:
-                    break;
-
-                }
-
-
-        }
-
-        if(parent->text(0)=="structure"){
-
-            switch(row){
-                case 2:
-                    if(init_s.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                    break;
-
-                case 3:
-                    if(loaddlg.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                    break;
-
-                case 1:
-
-                    if(addboundingstr.exec()==QDialog::Accepted){
-                        QTreeWidgetItem *item_ = load_tree->currentItem();
-                        int childcount = 0;
-                        if(item_ == NULL){
-                            QMessageBox::information(NULL, tr("Path"), tr("You didn't select any nodes."));
-                        }else{
-                          childcount = item_->childCount();
-                          QList<QString> boundingname;
-                          qDebug()<<childcount;
-                          if(childcount>0){
-                              boundingname.push_back(item_->text(0));
-                          }else
-                          {
-                              for(int i=0;i<childcount;i++){
-                                  boundingname.push_back(item_->child(i)->text(0));
-                              }
-                          }
-
-                        }
-                           item->setIcon(0,QIcon(":/new/images/on.png"));
-//                           qDebug()<<addboundingaco.str;
-//                           QTreeWidgetItem *qwt = new QTreeWidgetItem((QStringList)addboundingaco.str);
-//                           item->addChild(qwt);
-//                           delete qwt;
-
-                           item->addChild(new QTreeWidgetItem((QStringList)addboundingaco.str));
-                    }
-                    break;
-                case 4:
-                    if(generalstr.exec()==QDialog::Accepted)
-                        item->setIcon(0,QIcon(":/new/images/on.png"));
-                    break;
-
-                default:
-                    break;
 
             }
 
-        }
-
-
-        if(parent->text(0)=="ASI"){
-            if(row==2){
-                output.exec();
+            //输出对话框
+            if(parent->text(0)=="ASI"){
+                if(row==2){
+                    output.exec();
+                }
             }
-        }
+       if(parent->parent()!=NULL){
+           if(parent->parent()->text(0)=="Acoustic"){
+               addboundingaco.exec();
+           }
 
+           if(parent->parent()->text(0)=="structure"){
+               addboundingstr.exec();
+           }
 
-    }
+       }
+
+       }
+
 
 }
 
@@ -824,38 +893,39 @@ void MainWindow::on_action_4_triggered()
     close();
 }
 
-void MainWindow::del(){
-    delete ui->treeWidget->currentItem();
-}
 
+//void MainWindow::on_treeWidget_customContextMenuRequested(const QPoint &pos)
+//{
 
-void MainWindow::on_treeWidget_customContextMenuRequested(const QPoint &pos)
-{
+//    if (ui->treeWidget->itemAt(pos)->parent()!=NULL&&ui->treeWidget->itemAt(pos)->parent()->text(0)=="bounding") {
+//          QMenu *popmenu = new QMenu( );
 
-    if (ui->treeWidget->itemAt(pos)->parent()!=NULL&&ui->treeWidget->itemAt(pos)->parent()->text(0)=="bounding") {
-          QMenu *popmenu = new QMenu( );
+//          QAction *action = new QAction("删除",this);
+//          connect(action,SIGNAL(triggered()),this,SLOT(del()));
+//          popmenu->addAction(action);
 
-          QAction *action = new QAction("删除",this);
-          connect(action,SIGNAL(triggered()),this,SLOT(del()));
-          popmenu->addAction(action);
+////          //获得全局坐标。
+//          auto globalPos = ui->treeWidget->mapToGlobal(pos);
 
-//          //获得全局坐标。
-          auto globalPos = ui->treeWidget->mapToGlobal(pos);
-
-          popmenu->exec(globalPos);
-         delete popmenu;
-    }
-}
+//          popmenu->exec(globalPos);
+//         delete popmenu;
+//    }
+//}
 
 void MainWindow::on_loadtree_customContextMenuRequested(const QPoint &pos)
 {
     if(load_tree->itemAt(pos)!=NULL){
     if(load_tree->itemAt(pos)->parent()==NULL){
         QMenu *pop_del_menu = new QMenu( );
-
+//ModufyProDialog
         QAction *del_node_action = new QAction("删除节点",this);
+
+        QAction *modify_node_action = new QAction(tr("modify pro"),this);
+
         connect(del_node_action,SIGNAL(triggered()),this,SLOT(del_node()));
+        connect(modify_node_action,SIGNAL(triggered()),this,SLOT(modify_pro()));
         pop_del_menu->addAction(del_node_action);
+        pop_del_menu->addAction(modify_node_action);
         pop_del_menu->addAction(openModelAct);
 
         auto globalPos = load_tree->mapToGlobal(pos);
@@ -884,6 +954,14 @@ void MainWindow::on_loadtree_customContextMenuRequested(const QPoint &pos)
     }
 }
 
+void MainWindow::modify_pro()
+{
+  //  ModufyProDialog  modify_dialog;
+    QTreeWidgetItem *item_ = load_tree->currentItem();
+    QString filename = item_->text(0);
+    modify_dlg->setItem(filename.section("/",-1));
+    modify_dlg->exec();
+}
 
 void MainWindow::del_node()
 {
@@ -893,7 +971,12 @@ void MainWindow::del_node()
     if (item)
     {
         osg::ref_ptr<osg::Node> node = item->getOsgNode();
-        _glWidget->ClearModelNodeByName(node);
+        RemoveData removevistor;
+        node->accept(removevistor);
+         _glWidget->ClearModelNodeByName(node);
+         qDebug()<<node->className();
+         qDebug()<<node->asGroup()->getNumChildren();
+       // _glWidget->m_rpSceneGroupRoot->removeChild(node);
         _glWidget->ResetCameraPara();
         _glWidget->update();
         _glWidget->home();
@@ -942,93 +1025,7 @@ void MainWindow::modify_color()
 
 void MainWindow::readSolutionCgns(char* file)
 {
-        int nbases, celldim, phydim;
-        char basename[33];
-        ZONE *z;
-        BOCO *bocos;
-        int nz, nb;
 
-        /* Checks for existance of file */
-        if (!file_exists(file))
-            FATAL(NULL, "File does not exist");
-
-        /* Read CGNS file */
-        printf("Reading CGNS file from %s\n", file);
-        fflush(stdout);
-
-        /* Open CGNS File */
-        nbases = open_cgns(file, 0);
-        if (!nbases)
-            FATAL(NULL, "No bases in CGNS file");
-
-
-        printf("No of Bases in file = %d\n", nbases);
-
-        if (nbases == 1)
-            cgnsbase = 1;
-        else {
-            printf("Give base No to browse : ");
-            scanf("%d", &cgnsbase);
-
-            if (cgnsbase < 1 || cgnsbase > nbases)
-                FATAL(NULL, "Invailed base index");
-        }
-
-//        if (cg_base_read(cgnsfn, cgnsbase, basename, &celldim, &phydim))
-//            FATAL(NULL, NULL);
-
-//        printf("Using base %d - %s\n", cgnsbase, basename);
-//        printf("Cell dimension     = %d\n", celldim);
-//        printf("Physical dimension = %d\n", phydim);
-
-        read_cgns();
-
-        printf("No of zones nodes = %d\n", nZones);
-
-        for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-
-            printf("\nZone No = %d\nZone Name = %s\n %d", z->id, z->name,z->nverts);
-            qDebug()<<z->dim[0]*z->dim[1]*z->dim[2];
-            print_ZoneType(z->type);
-            switch (z->type) {
-                case 2:
-                    printf("Dimensions = %d x %d x %d\n",
-                            z->dim[0], z->dim[1], z->dim[2]);
-                    break;
-                case 3:
-                    printf("Dimensions = %d %d\n", z->dim[0],z->dim[1]);
-                    break;
-            }
-
-for(int i=0;i<z->dim[1];i++)
-{
-  printf("%d %f %f %f %f\n",i,z->verts[i].x,z->verts[i].y,z->verts[i].z,z->verts[i].w);
-}
-
-            if (z->nsols) {
-                printf("No of solutions node = %d\n", z->nsols);
-                print_solution(z);
-                SOLUTION *sols;
-
-               // read_zone_solution(zone->id);
-                sols = z->sols;
-                for (int ns = 0; ns < z->nsols; ns++) {
-
-                    printf("Size = %d\n", sols[ns].size);
-                    printf("No of Fields = %d\n", sols[ns].nflds);
-                    for (int nf = 0; nf < sols[ns].nflds; nf++){
-                        printf("\t%s\n", sols[ns].flds[nf].name);
-//                        for(int i=0;i<z->dim[0];i++)
-//                        {
-//                            printf("%d %f",i,sols[ns].flds[nf].data[i]) ;
-//                        }
-                       // printf("%d ",sols[ns].flds[nf].data[nf]) ;
-                    }
-                }
-            }
-        }
-
-       FATAL(NULL, NULL);
 
        return ;
 
@@ -1144,4 +1141,434 @@ osg::Node* MainWindow::createHUD()
     camera->addChild(geode);
 
     return camera;
+}
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QString del_cgns = "delete from cgns";
+    QString del_msh  = "delete from msh";
+    //SqlHelper->openSQLiteDB();
+   // SqlHelper->deleteRow(del_cgns);
+   // SqlHelper->deleteRow(del_msh);
+   // SqlHelper->closeSQLiteDB();
+    SQLHelper::deleteRow(del_cgns);
+    SQLHelper::deleteRow(del_msh);
+    event->accept();
+
+}
+
+QString MainWindow::checkfileesist(QString filepath)
+{
+    //return filename,the filename should change filepath ,if file  already exist then rename else no change return filename
+    //1.get the filename
+    QString file_name = filepath.section("/",-1);
+
+    QString file_suffix = file_name.section(".",1,-1);
+    qDebug()<<file_suffix;
+    QString real_name = file_name.section(".",0,0);
+   // qDebug()<<real_name;
+    QString sql="";
+    if(file_name.endsWith("cgns")){
+         sql = "select distinct  filename from cgns";
+    }else if(file_name.endsWith("msh")){
+         sql = "select distinct  filename from msh";
+    }
+
+    QList<QString> namelist = SQLHelper::selectbysql(sql);
+    int n = namelist.size();
+    if(n>0)
+    {
+        for(int i=0;i<n;i++)
+        {
+            QString temp = namelist.at(i).section(".",0,0);
+            qDebug()<<temp<<temp.compare(real_name);
+            if(temp.compare(real_name) == 0){
+                QString tip = "the file is already exist,\n if you want to load we will change the name from ";
+                tip += real_name;
+                tip += " to ";
+                tip +=real_name;
+                tip += "1";
+                QMessageBox::StandardButton rb = QMessageBox::warning(NULL,"warning",tip,QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+                if(rb == QMessageBox::Yes)
+                {
+                    QString base_file_name = filepath.section(".",0,0);
+                    QString newfilepath = base_file_name.replace(real_name,real_name+"1").append(".")+file_suffix;
+//qDebug()<<newfilepath<<filepath;
+                   // QFile::rename(filepath, newfilepath);
+//                    qDebug()<<QFile::rename(filepath, newfilepath);
+                    copyFileToPath(filepath,newfilepath,true);
+                    return newfilepath;
+                }else{
+                    return "";
+                }
+
+            }
+        }
+        return filepath;
+    }else
+    {
+        return filepath;
+    }
+
+}
+
+bool MainWindow::copyFileToPath(QString sourceDir ,QString toDir, bool coverFileIfExist)
+{
+        if (sourceDir == toDir){
+            return true;
+        }
+        if (!QFile::exists(sourceDir)){
+            return false;
+        }
+        QDir *createfile     = new QDir;
+        bool exist = createfile->exists(toDir);
+        if (exist){
+            if(coverFileIfExist){
+                createfile->remove(toDir);
+            }
+        }//end if
+
+        if(!QFile::copy(sourceDir, toDir))
+        {
+            return false;
+        }
+        return true;
+}
+
+void MainWindow::updateBounding(){
+    //首先清空两个bounding下的item
+    qDebug()<<"test emit";
+    QList< QTreeWidgetItem *> templist= ui->treeWidget->findItems("bounding",Qt::MatchRecursive,0);
+    foreach (QTreeWidgetItem *temp, templist) {
+        QList<QTreeWidgetItem *> temp2=temp->takeChildren();
+        foreach(QTreeWidgetItem *temp3 , temp2){
+            delete temp3;
+        }
+    }
+
+    QStringList listAco,listStr;
+    QSqlQuery query(SQLHelper::dbLink);
+    //acoustic的边界list
+    query.exec("select regname from cgns where type=='fluid'");
+    while(query.next()){
+        listAco<<query.value("regname").toString();
+    }
+    //structure的边界list
+    query.exec("select regname from cgns where type= 'solid'");
+    while(query.next()){
+        listStr<<query.value(0).toString();
+    }
+
+    QTreeWidgetItem *parentAco = ui->treeWidget->topLevelItem(0)->child(0)->child(2);//acoustc的bounding节点
+    QTreeWidgetItem *parentStr = ui->treeWidget->topLevelItem(0)->child(1)->child(1);//structure的bounding节点
+
+    //构造acoustc的bounding孩子节点
+    if(!listAco.isEmpty()){
+        foreach (QString tmp, listAco) {
+                new QTreeWidgetItem(parentAco,QStringList(tmp));
+
+        }
+    }
+    //构造structure的bounding孩子节点
+    if(!listStr.isEmpty()){
+        foreach (QString tmp, listStr) {
+                new QTreeWidgetItem(parentStr,QStringList(tmp));
+
+        }
+    }
+
+
+}
+
+void MainWindow::add_map_objects(QString filename, QString zonename)
+{
+    ChangeObject object(filename,zonename);
+    int n = change_objects.size();
+    change_objects.insert(n+1,object);
+
+}
+
+void MainWindow::change_map_objects(ChangeObject object)
+{
+  //1.get the zone which need matrix
+
+    //float angle = object.angle_scale;
+    QString filename = object.filename;
+    QString zonename = object.zonename;
+    ChangeObject object_map;
+    // if the key < 0 ,then the file is changed .need save another file
+    QMap<int, ChangeObject>::const_iterator map_i;
+    for (map_i = change_objects.constBegin(); map_i != change_objects.constEnd(); ++map_i) {
+        object_map = map_i.value();
+        if(object_map.filename == filename && object_map.zonename == zonename){
+            object_map.angle_x += object.angle_x;
+            object_map.angle_y += object.angle_y;
+            object_map.angle_z += object.angle_z;
+            object_map.trans_x += object.trans_x;
+            object_map.trans_y += object.trans_y;
+            object_map.trans_z += object.trans_z;
+            object_map.x_scale *= object.x_scale;
+            object_map.y_scale *= object.y_scale;
+            object_map.z_scale *= object.z_scale;
+
+            break;
+
+        }
+
+    }
+    int key = map_i.key();
+    change_objects.remove(key);
+    if(key < 0){
+        change_objects.insert(key,object_map);
+    }else{
+        key = 0-key;
+        change_objects.insert(key,object_map);
+    }
+
+
+   // qDebug()<<x<<y<<z<<angle<<filename<<zonename;
+    //2 find the node based on the filename and zonename
+    FindNodeVistor node_finder(zonename.toStdString(),filename.toStdString());
+    _glWidget->m_rpSceneGroupRoot->accept(node_finder);
+    if (!node_finder._foundNodes.empty()) {
+       osg::ref_ptr<osg::Node> obj = node_finder._foundNodes.front().get();
+
+       osg::Matrixd transform= obj->asTransform()->asMatrixTransform()->getMatrix();
+
+//      transform.setTrans(osg::Vec3d(x,y,z));
+//      transform.setRotate(osg::Matrix::translate(object.trans_x, object.trans_y, object.trans_z) *
+//                          osg::Matrix::rotate(osg::DegreesToRadians(-90.0f), 0, 0, 1) *
+//                          osg::Matrix::scale(object.x_scale,object.y_scale,object.z_scale));
+       if(object.trans_x ==0 && object.trans_y == 0 && object.trans_z ==0){
+           obj->asTransform()->asMatrixTransform()->setMatrix(
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_x), 1, 0, 0) *
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_y), 0, 1, 0) *
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_z), 0, 0, 1) *
+                                                               osg::Matrix::scale(object.x_scale,object.y_scale,object.z_scale) );
+       }else{
+           obj->asTransform()->asMatrixTransform()->setMatrix( osg::Matrix::translate(object.trans_x, object.trans_y, object.trans_z) *
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_x), 1, 0, 0) *
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_y), 0, 1, 0) *
+                                                               osg::Matrix::rotate(osg::DegreesToRadians(object.angle_z), 0, 0, 1) *
+                                                               osg::Matrix::scale(object.x_scale,object.y_scale,object.z_scale) );
+       }
+
+//       qDebug()<<obj->className();
+//       osg::Matrixd transform=obj->asTransform()->asMatrixTransform()->getMatrix();
+//          qDebug()<<obj->className();
+//       transform.setTrans(osg::Vec3d(x,y,z));
+//       obj->asTransform()->asMatrixTransform()->setMatrix( transform );
+//       qDebug()<<obj->getParent(0)->className();
+//       if (dynamic_cast<osg::MatrixTransform*>(obj->getParent(0)))
+//       {
+//           osg::Matrixd transform= obj->getParent(0)->asTransform()->asMatrixTransform()->getMatrix();
+//           transform.setTrans(osg::Vec3d(x,y,z));
+//           obj->getParent(0)->asTransform()->asMatrixTransform()->setMatrix( transform );
+//             qDebug()<<obj->getParent(0)->className();
+//       }
+//       else
+//       {
+
+//           osg::ref_ptr < osg::MatrixTransform > rot = new osg::MatrixTransform ;
+//           rot ->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(45.0), 1, 0, 0)*osg::Matrix::scale(1.5,1.5,
+//           0.5)*osg::Matrix::translate(40, 0, -2)) ;
+//           rot ->addChild(obj.get()) ;
+//           qDebug()<<obj->getParent(0)->className()<<obj->getParent(0)->getNumChildren();
+//           obj->getParent(0)->replaceChild(obj,rot);
+//       }
+//       if(obj->getParent(0)->className() == "Group"){
+//       osg::ref_ptr < osg::MatrixTransform > rot = new osg::MatrixTransform ;
+//       rot ->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(45.0), 1, 0, 0)*osg::Matrix::scale(1.5,1.5,
+//       0.5)*osg::Matrix::translate(40, 0, -2)) ;
+//       rot ->addChild(obj.get()) ;
+//       qDebug()<<obj->getParent(0)->className()<<obj->getParent(0)->getNumChildren();
+//       obj->getParent(0)->replaceChild(obj,rot);
+//       }else if(obj->getParent(0)->className() == "MatrixTransform")
+//       {
+//          osg::Matrixd transform= obj->getParent(0)->asTransform()->asMatrixTransform()->getMatrix();
+//          transform.setTrans(osg::Vec3d(x,y,z));
+//          obj->getParent(0)->asTransform()->asMatrixTransform()->setMatrix( transform );
+//       }
+       //obj->asTransform()->asMatrixTransform()->setMatrix(osg::Matrix::translate(x,y,z));
+    }
+
+}
+
+void MainWindow::on_action_3_triggered()
+{
+
+    QString fileName = QFileDialog::getSaveFileName(this,
+            tr("Save  file"), "",
+            tr("cgns (*.cgns);;All Files (*)"));
+
+
+
+   if (fileName.isEmpty())
+           return;
+    else {
+//        QFile file(fileName);
+//       if (!file.open(QIODevice::WriteOnly)) {
+//                QMessageBox::information(this, tr("Unable to open file"),
+//                    file.errorString());
+//                return;
+//       }
+      //get filepath where the orign file
+      QString origin_filename ="cht3d1.cgns";
+      QString sql = "select distinct filepath from cgns where filename ='";
+      sql +=origin_filename;
+      sql +="'";
+      qDebug()<<sql;
+      QList<QString>filepathlist = SQLHelper::selectbysql(sql);
+      if(!filepathlist.isEmpty()){
+          QString filepath = filepathlist.at(0);
+
+        if(file_exists(filepath.toStdString().c_str())){
+          //read origin cgns
+            qDebug()<<filepath;
+
+         ROOT* CoreDB;
+         CGNSIO_INIT();
+
+         // Open CGNS Grid File to Read in Mode Read only
+         int mode = 1;
+         if(open_cgns(filepath.toStdString().c_str(), 1))
+             return  ;
+
+         // Read the CGNS Database and Update the data structue
+         // Get the Number of Bases
+         CoreDB->nbases = get_cgns_nbases();
+         if (CoreDB->nbases > 0) {
+             CoreDB->bases = new_base(CoreDB->nbases);
+             if (CoreDB->bases == NULL)
+                 return  ;
+
+             BASE *qbase = NULL;
+             for (int nb = 1; nb <= CoreDB->nbases; nb++) {
+                 qbase = get_cgns_base(nb);
+                 if (qbase != NULL) {
+                     // Get the value of current base
+                     CoreDB->bases[nb-1].celldim   = qbase->celldim;
+                     CoreDB->bases[nb-1].phydim    = qbase->phydim;
+                     CoreDB->bases[nb-1].baseclass = qbase->baseclass;
+                     CoreDB->bases[nb-1].ndesc     = qbase->ndesc;
+                     CoreDB->bases[nb-1].desc      = qbase->desc;
+                     CoreDB->bases[nb-1].nzones    = qbase->nzones;
+                     CoreDB->bases[nb-1].zones     = qbase->zones;
+                     for (int i = 0; i < 5; i++)
+                         CoreDB->bases[nb-1].baseunits[i] = qbase->baseunits[i];
+                     str_blank(CoreDB->bases[nb-1].name);
+                     strcpy(CoreDB->bases[nb-1].name, qbase->name);
+
+                     // Now Reset the data and free the qbase
+                     qbase->zones = NULL;
+                     qbase->desc  = NULL;
+                     del_base(qbase);
+                     qbase = NULL;
+                 }
+             }
+         }
+
+         // Close CGNS Database
+         if (close_cgns())
+             return  ;
+
+         // Finalize the CGNSIO Library
+         CGNSIO_FINI();
+
+         //scan which zone should save
+               QString select_zonename = "fluid";
+               qDebug()<<select_zonename;
+              for(int j=0;j<CoreDB->bases[0].nzones;j++){
+                  qDebug()<<CoreDB->bases[0].zones[j].name<<select_zonename.toStdString().c_str();
+                  //if(select_zonename.toStdString().c_str() == CoreDB->bases[0].zones[j].name){
+                   if(!select_zonename.toStdString().compare(CoreDB->bases[0].zones[j].name)){
+                      //change the coord
+                      //find the change value from map
+                       qDebug()<<CoreDB->bases[0].zones[j].name;
+
+
+                                //change coord
+                               for(int k=0;k< CoreDB->bases[0].zones[j].nverts;k++) {
+                                   //trans should +
+                                   CoreDB->bases[0].zones[j].verts[k].x += 1;
+                                   CoreDB->bases[0].zones[j].verts[k].y += 1;
+                                   CoreDB->bases[0].zones[j].verts[k].z += 1;
+                                   //scale should * and need check >0
+
+                                        CoreDB->bases[0].zones[j].verts[k].x *= 2;
+
+
+                                        CoreDB->bases[0].zones[j].verts[k].y *= 2;
+
+
+                                       CoreDB->bases[0].zones[j].verts[k].z *=  2;
+
+                                   //FIXED:ME angel should think?????
+
+                               }
+
+                             }
+                          }// map zone name end
+
+
+
+
+
+
+          //save file
+         qDebug()<<"write file begin";
+         CGNSIO_INIT();
+
+         // Open CGNS Grid File
+         if(open_cgns(fileName.toStdString().c_str(), 3))
+             return  ;
+
+         // Write the Database if Data is available
+         if (CoreDB->nbases > 0) {
+             for (int nb = 1; nb <= CoreDB->nbases; nb++) {
+                 ZONE *z = NULL;
+                 // Temporary Make Solution Parameter to Zero so avoid solution write
+                 if((mode &2) == 2) {
+                     z = new_zone(CoreDB->bases[nb-1].nzones);
+                     if (z != NULL) {
+                         for (int i = 0; i < CoreDB->bases[nb-1].nzones; i++) {
+                             z[i].nsols = CoreDB->bases[nb-1].zones[i].nsols;
+                             CoreDB->bases[nb-1].zones[i].nsols = 0;
+                         }
+                     }
+                 }
+
+                 // Now Write Base to File
+                 if (set_cgns_base(&CoreDB->bases[nb-1]))
+                     return  ;
+
+                 // Restore back the Solution Parameter
+                 if((mode &2) == 2) {
+                     if (z != NULL) {
+                         for (int i = 0; i < CoreDB->bases[nb-1].nzones; i++) {
+                             CoreDB->bases[nb-1].zones[i].nsols = z[i].nsols;
+                             z[i].nsols = 0;
+                         }
+                         del_zone(z);
+                         z = NULL;
+                     }
+                 }
+             }
+         }
+
+         // Close CGNS Database
+         if (close_cgns())
+             return  ;
+
+         // Finalize the CGNSIO Library
+          CGNSIO_FINI();
+  qDebug()<<"write file end";
+
+
+
+
+        }// origin file is exist;
+      }
+}
 }

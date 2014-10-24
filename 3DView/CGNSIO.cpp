@@ -178,11 +178,11 @@ ELEMSET *new_elemset(int nesets) {
 /*---------- new_interface --------------------------------------------
  * create grid 1to1 interface array for a zone
  *---------------------------------------------------------------------*/
-INTERFACES *new_interface(int nints) {
+INTERFACE_CGNS *new_interface(int nints) {
     int n;
-    INTERFACES *ints;
+    INTERFACE_CGNS *ints;
 
-    ints = (INTERFACES *) calloc(nints, sizeof (INTERFACES));
+    ints = (INTERFACE_CGNS *) calloc(nints, sizeof (INTERFACE_CGNS));
     if (NULL == ints)
         FATAL("new_interface", "calloc failed for new interface array");
     for (n = 0; n < nints; n++) {
@@ -652,7 +652,7 @@ int structured_elements(int nz) {
 int read_zone_interface(int nz) {
     int i, j, n, ni, range[2][3], d_range[2][3];
     ZONE *z = &Zones[nz - 1];
-    INTERFACES *ints;
+    INTERFACE_CGNS *ints;
 
     if (cg_n1to1(cgnsfn, cgnsbase, nz, &z->nints))
         FATAL("read_zone_interface", NULL);
@@ -1018,12 +1018,435 @@ int read_units(int units[5]) {
     units[4] = angle;
     return 1;
 }
+
+/*---------- write_cgns -----------------------------------------------
+ * write the CGNS file
+ *---------------------------------------------------------------------*/
+void write_cgns(void) {
+    int nz, ns;
+
+    write_zones();
+    for (nz = 1; nz <= nZones; nz++) {
+        write_zone_grid(nz);
+        write_zone_element(nz);
+        write_zone_interface(nz);
+        write_zone_connect(nz);
+        write_zone_boco(nz);
+        for (ns = 1; ns <= Zones[nz - 1].nsols; ns++) {
+            write_zone_solution(nz, ns);
+            write_solution_field(nz, ns, 0);
+        }
+    }
+}
+
+/*---------- write_zones ----------------------------------------------
+ * write zone information to CGNS file
+ *---------------------------------------------------------------------*/
+void write_zones(void) {
+    int n, nz, sizes[3][3];
+    ZONE *z = Zones;
+
+    for (n = 0; n < 5; n++) {
+        /* Pre-intialized baseunits[5]={0,0,0,0,0} */
+        if (baseunits[n]) {
+            if (cg_goto(cgnsfn, cgnsbase, "end") ||
+                    cg_units_write((MassUnits_t) baseunits[0],
+                    (LengthUnits_t) baseunits[1],
+                    (TimeUnits_t) baseunits[2],
+                    (TemperatureUnits_t) baseunits[3],
+                    (AngleUnits_t) baseunits[4]))
+                FATAL("write_zones", NULL);
+            break;
+        }
+    }
+    /* Pre-initialized baseclass = 0 */
+    if (baseclass) {
+        if (cg_goto(cgnsfn, cgnsbase, "end") ||
+                cg_dataclass_write((DataClass_t) baseclass))
+            FATAL("write_zones", NULL);
+    }
+    /* write the zone information */
+    for (nz = 0; nz < nZones; nz++, z++) {
+        if (!z->id) continue;
+        for (n = 0; n < 3; n++) {
+            sizes[0][n] = z->dim[n];
+            sizes[1][n] = z->dim[n] - 1;
+            sizes[2][n] = 0;
+        }
+        if (cg_zone_write(cgnsfn, cgnsbase, z->name,
+                (int *) sizes, (ZoneType_t) z->type, &z->id))
+            FATAL("write_zones", NULL);
+        for (n = 0; n < 5; n++) {
+            if (z->units[n] && z->units[n] != baseunits[n]) {
+                if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id, "end") ||
+                        cg_units_write((MassUnits_t) z->units[0],
+                        (LengthUnits_t) z->units[1],
+                        (TimeUnits_t) z->units[2],
+                        (TemperatureUnits_t) z->units[3],
+                        (AngleUnits_t) z->units[4]))
+                    FATAL("write_zones", NULL);
+                break;
+            }
+        }
+        if (z->dataclass && z->dataclass != baseclass) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id, "end") ||
+                    cg_dataclass_write((DataClass_t) z->dataclass))
+                FATAL("write_zones", NULL);
+        }
+        if (z->ndesc) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id, "end"))
+                FATAL("write_zones", NULL);
+            for (n = 0; n < z->ndesc; n++) {
+                if (cg_descriptor_write(z->desc[n].name, z->desc[n].desc))
+                    FATAL("cg_descriptor_write", NULL);
+            }
+        }
+    }
+}
+
+/*---------- write_zone_data ------------------------------------------
+ * write all zone data
+ *---------------------------------------------------------------------*/
+void write_zone_data(int nz) {
+    int n, ns, sizes[3][3];
+    ZONE *z = &Zones[nz - 1];
+
+    /* write the zone information */
+    for (n = 0; n < 3; n++) {
+        sizes[0][n] = z->dim[n];
+        sizes[1][n] = z->dim[n] - 1;
+        sizes[2][n] = 0;
+    }
+    if (cg_zone_write(cgnsfn, cgnsbase, z->name,
+            (int *) sizes, (ZoneType_t) z->type, &z->id))
+        FATAL("write_zone_data", NULL);
+    for (n = 0; n < 5; n++) {
+        if (z->units[n] && z->units[n] != baseunits[n]) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id, "end") ||
+                    cg_units_write((MassUnits_t) z->units[0],
+                    (LengthUnits_t) z->units[1],
+                    (TimeUnits_t) z->units[2],
+                    (TemperatureUnits_t) z->units[3],
+                    (AngleUnits_t) z->units[4]))
+                FATAL("write_zone_data", NULL);
+            break;
+        }
+    }
+    write_zone_grid(nz);
+    write_zone_element(nz);
+    write_zone_interface(nz);
+    write_zone_connect(nz);
+    write_zone_boco(nz);
+    for (ns = 1; ns <= Zones[nz - 1].nsols; ns++) {
+        write_zone_solution(nz, ns);
+        write_solution_field(nz, ns, 0);
+    }
+}
+
+/*---------- write_zone_grid ------------------------------------------
+ * write zone grid coordinates
+ *---------------------------------------------------------------------*/
+void write_zone_grid(int nz) {
+    int n, nc;
+    ZONE *z = &Zones[nz - 1];
+
+    if (z->verts == NULL || (z->vertflags & 7) == 0)
+        return;
+    if (z->datatype == RealSingle) {
+        float *xyz = (float *) malloc(z->nverts * sizeof (float));
+        if (NULL == xyz)
+            FATAL("write_zone_grid",
+                "malloc failed for coordinate working array");
+        if ((z->vertflags & 1) == 1) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = (float) z->verts[n].x;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealSingle,
+                    "CoordinateX", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        if ((z->vertflags & 2) == 2) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = (float) z->verts[n].y;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealSingle,
+                    "CoordinateY", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        if ((z->vertflags & 4) == 4) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = (float) z->verts[n].z;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealSingle,
+                    "CoordinateZ", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        free(xyz);
+    } else {
+        double *xyz = (double *) malloc(z->nverts * sizeof (double));
+        if (NULL == xyz)
+            FATAL("write_zone_grid",
+                "malloc failed for coordinate working array");
+        if ((z->vertflags & 1) == 1) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = z->verts[n].x;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealDouble,
+                    "CoordinateX", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        if ((z->vertflags & 2) == 2) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = z->verts[n].y;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealDouble,
+                    "CoordinateY", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        if ((z->vertflags & 4) == 4) {
+            for (n = 0; n < z->nverts; n++)
+                xyz[n] = z->verts[n].z;
+            if (cg_coord_write(cgnsfn, cgnsbase, z->id, RealDouble,
+                    "CoordinateZ", xyz, &nc)) FATAL("write_zone_grid", NULL);
+        }
+        free(xyz);
+    }
+}
+
+/*---------- write_zone_element ---------------------------------------
+ * write zone element sets and elements
+ *---------------------------------------------------------------------*/
+void write_zone_element(int nz) {
+    int ns;
+    ZONE *z = &Zones[nz - 1];
+    ELEMSET *eset = z->esets;
+
+    if (eset == NULL || z->type == Structured)
+        return;
+    for (ns = 1; ns <= z->nesets; ns++, eset++) {
+        if (eset->id) {
+            if (cg_section_write(cgnsfn, cgnsbase, z->id,
+                    eset->name, (ElementType_t) eset->type,
+                    eset->start, eset->end, eset->nbndry,
+                    eset->conn, &eset->id))
+                FATAL("write_zone_element", NULL);
+            if (eset->parent != NULL &&
+                    cg_parent_data_write(cgnsfn, cgnsbase, z->id,
+                    eset->id, eset->parent))
+                FATAL("write_zone_element", NULL);
+        }
+    }
+}
+
+/*---------- write_zone_interface -------------------------------------
+ * write zone 1 to 1 interfaces
+ *---------------------------------------------------------------------*/
+void write_zone_interface(int nz) {
+    int i, j, ni, range[2][3], d_range[2][3];
+    ZONE *z = &Zones[nz - 1];
+    INTERFACE_CGNS *ints = z->ints;
+
+    if (ints == NULL)
+        return;
+    for (ni = 1; ni <= z->nints; ni++, ints++) {
+        if (ints->id) {
+            for (j = 0; j < 2; j++) {
+                for (i = 0; i < 3; i++) {
+                    range[j][i] = ints->range[i][j];
+                    d_range[j][i] = ints->d_range[i][j];
+                }
+            }
+            if (cg_1to1_write(cgnsfn, cgnsbase, z->id,
+                    ints->name, ints->d_name, (int *) range,
+                    (int *) d_range, ints->transform, &ints->id))
+                FATAL("write_zone_interface", NULL);
+        }
+    }
+}
+
+/*---------- write_zone_connect ---------------------------------------
+ * write zone connectivities
+ *---------------------------------------------------------------------*/
+void write_zone_connect(int nz) {
+    int nc;
+    ZONE *z = &Zones[nz - 1];
+    CONNECT *conns = z->conns;
+
+    if (conns == NULL)
+        return;
+    for (nc = 1; nc <= z->nconns; nc++, conns++) {
+        if (conns->id &&
+                cg_conn_write(cgnsfn, cgnsbase, z->id,
+                conns->name, (GridLocation_t) conns->location,
+                (GridConnectivityType_t) conns->type,
+                (PointSetType_t) conns->ptype, conns->npnts, conns->pnts,
+                conns->d_name, (ZoneType_t) conns->d_ztype,
+                (PointSetType_t) conns->d_ptype, Integer, conns->d_npnts,
+                conns->d_pnts, &conns->id))
+            FATAL("write_zone_connect", NULL);
+    }
+}
+
+/*---------- write_zone_bocos -----------------------------------------
+ * write zone boundary conditions
+ *---------------------------------------------------------------------*/
+void write_zone_boco(int nz) {
+    int nb;
+    ZONE *z = &Zones[nz - 1];
+    BOCO *bocos = z->bocos;
+
+    if (bocos == NULL)
+        return;
+    for (nb = 1; nb <= z->nbocos; nb++, bocos++) {
+        if ((bocos->id) &&
+                (cg_boco_write(cgnsfn, cgnsbase, z->id,
+                bocos->name, (BCType_t) bocos->type,
+                (PointSetType_t) bocos->ptype, bocos->npnts,
+                bocos->pnts, &bocos->id) ||
+                cg_boco_normal_write(cgnsfn, cgnsbase, z->id, bocos->id,
+                bocos->n_index, bocos->n_cnt, (DataType_t) bocos->n_type,
+                bocos->n_list)))
+            FATAL("write_zone_boco", NULL);
+    }
+}
+
+/*---------- write_zone_solution --------------------------------------
+ * write zone solution
+ *---------------------------------------------------------------------*/
+void write_zone_solution(int nz, int ns) {
+    int n;
+    ZONE *z = &Zones[nz - 1];
+    SOLUTION *s;
+
+    if (z->sols == NULL || ns < 1 || ns > z->nsols)
+        return;
+    s = &z->sols[ns - 1];
+    if (cg_sol_write(cgnsfn, cgnsbase, z->id, s->name,
+            (GridLocation_t) s->location, &s->id))
+        FATAL("write_zone_solution", NULL);
+    if (z->type == Structured && s->location == CellCenter) {
+        if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                "FlowSolution_t", s->id, "end") ||
+                cg_rind_write((int *) s->rind))
+            FATAL("write_zone_solution", NULL);
+    }
+    for (n = 0; n < 5; n++) {
+        if (s->units[n] && s->units[n] != z->units[n]) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "end") ||
+                    cg_units_write((MassUnits_t) s->units[0],
+                    (LengthUnits_t) s->units[1],
+                    (TimeUnits_t) s->units[2],
+                    (TemperatureUnits_t) s->units[3],
+                    (AngleUnits_t) s->units[4]))
+                FATAL("write_zone_solution", NULL);
+            break;
+        }
+    }
+    if (s->dataclass && s->dataclass != z->dataclass) {
+        if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                "FlowSolution_t", s->id, "end") ||
+                cg_dataclass_write((DataClass_t) s->dataclass))
+            FATAL("write_zone_solution", NULL);
+    }
+    if (s->ndesc) {
+        if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                "FlowSolution_t", s->id, "end"))
+            FATAL("write_zone_solution", NULL);
+        for (n = 0; n < s->ndesc; n++) {
+            if (cg_descriptor_write(s->desc[n].name, s->desc[n].desc))
+                FATAL("cg_descriptor_write", NULL);
+        }
+    }
+}
+
+/*---------- write_solution_field -------------------------------------
+ * write solution field data for a zone
+ *---------------------------------------------------------------------*/
+void write_solution_field(int nz, int ns, int nf) {
+    int n, is, ie;
+    float *data = NULL;
+    ZONE *z = &Zones[nz - 1];
+    SOLUTION *s = &z->sols[ns - 1];
+    FIELD *f;
+
+    if (nf) {
+        is = ie = nf;
+    } else {
+        is = 1;
+        ie = s->nflds;
+    }
+    f = &s->flds[is - 1];
+    for (nf = is; nf <= ie; nf++, f++) {
+        if (f->data == NULL) continue;
+        if (f->datatype == RealSingle) {
+            if (data == NULL) {
+                data = (float *) malloc(s->size * sizeof (float));
+                if (NULL == data)
+                    FATAL("write_solution_field",
+                        "malloc failed for working array");
+            }
+            for (n = 0; n < s->size; n++)
+                data[n] = (float) f->data[n];
+            if (cg_field_write(cgnsfn, cgnsbase, z->id, s->id,
+                    RealSingle, f->name, data, &f->id))
+                FATAL("write_solution_field", NULL);
+        } else {
+            if (cg_field_write(cgnsfn, cgnsbase, z->id, s->id,
+                    RealDouble, f->name, f->data, &f->id))
+                FATAL("write_solution_field", NULL);
+        }
+        for (n = 0; n < 5; n++) {
+            if (f->units[n] && f->units[n] != s->units[n]) {
+                if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                        "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                        cg_units_write((MassUnits_t) f->units[0],
+                        (LengthUnits_t) f->units[1],
+                        (TimeUnits_t) f->units[2],
+                        (TemperatureUnits_t) f->units[3],
+                        (AngleUnits_t) f->units[4]))
+                    FATAL("write_solution_field", NULL);
+                break;
+            }
+        }
+        if (f->dataclass && f->dataclass != s->dataclass) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                    cg_dataclass_write((DataClass_t) f->dataclass))
+                FATAL("write_solution_field", NULL);
+        }
+        if (f->convtype == RealSingle) {
+            float conv[2];
+            for (n = 0; n < 2; n++)
+                conv[n] = (float) f->dataconv[n];
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                    cg_conversion_write(RealSingle, conv))
+                FATAL("write_solution_field", NULL);
+        } else if (f->convtype == RealDouble) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                    cg_conversion_write(RealDouble, f->dataconv))
+                FATAL("write_solution_field", NULL);
+        } else {
+        }
+        if (f->exptype == RealSingle) {
+            float exp[5];
+            for (n = 0; n < 5; n++)
+                exp[n] = (float) f->dataconv[n];
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                    cg_exponents_write(RealSingle, exp))
+                FATAL("write_solution_field", NULL);
+        } else if (f->exptype == RealDouble) {
+            if (cg_goto(cgnsfn, cgnsbase, "Zone_t", z->id,
+                    "FlowSolution_t", s->id, "DataArray_t", f->id, "end") ||
+                    cg_exponents_write(RealDouble, f->exponent))
+                FATAL("write_solution_field", NULL);
+        } else {
+        }
+    }
+    if (data != NULL) free(data);
+}
+
+
+
 /*---------- print_interface ------------------------------------------
  * Prints Interface Information
  *---------------------------------------------------------------------*/
 void print_interface(ZONE *zone) {
     int ni;
-    INTERFACES *ints;
+    INTERFACE_CGNS *ints;
 
     read_zone_interface(zone->id);
     ints = zone->ints;

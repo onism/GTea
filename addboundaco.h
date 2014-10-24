@@ -16,13 +16,13 @@ public:
     explicit AddBoundAco(QWidget *parent = 0);
     ~AddBoundAco();
     QString str;
-    void setItem(QList<QString> structure);
+//    void setItem(QList<QString> structure);
 private:
     Ui::AddBoundAco *ui;
 private slots:
-    void getcurrenttex();
+//    void getcurrenttex();
 
-    void on_buttonBox_clicked(QAbstractButton *button);
+//    void on_buttonBox_clicked(QAbstractButton *button);
 };
 
 #endif // ADDBOUNDACO_H

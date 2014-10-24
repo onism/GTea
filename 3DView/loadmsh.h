@@ -56,6 +56,7 @@ public:
     LoadMsh(QString filename);
      osg::ref_ptr<osg::Group> oroot;
       QList<Name_Id> Face_Names;
+      QList<QString> face_wall_names;
 private:
     QList<MshNodeData> read_zones(int data_numbers,QTextStream &stream,int dim);
     QList<FaceData> read_face(int data_numbers, QTextStream &stream, int elem_type);

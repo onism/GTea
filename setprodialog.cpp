@@ -3,7 +3,8 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QAbstractButton>
-SetProDialog::SetProDialog(QWidget *parent) :
+#include "sqlhelper.h"
+SetProDialog::SetProDialog(QWidget *parent ) :
     QDialog(parent),
     ui(new Ui::SetProDialog)
 {
@@ -18,9 +19,11 @@ SetProDialog::~SetProDialog()
 }
 
 
-void SetProDialog::setItem(QList<QString> zone_names)
+void SetProDialog::setItem(QList<QString> zone_names, QString filename, int filetype)
 {
     ui->comboBox->clear();
+    set_filename = filename;
+    set_filetype = filetype;
     int n = zone_names.size();
 
     if( n > 0 ){
@@ -78,7 +81,44 @@ void SetProDialog::on_pushButton_clicked()
 
 void SetProDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
+   // qDebug()<<button->text();
+    if (QString::compare(button->text(),"OK", Qt::CaseInsensitive) == 0){
+            //write db
+         QString insertsql;
+          QString wheresql;
+        if(set_filetype == 1) //cgns file
+        {
+              insertsql = "update cgns set type='";
+              wheresql  = " where filename ='"+set_filename+"' and zonename='";
+        }else if(set_filetype == 2)
+        {
+              insertsql = "update msh set type='";
+              wheresql  = " where filename ='"+set_filename+"' and facename='";
+        }
+        //SQLHelper * sqlhelper = new SQLHelper;
+       // sqlhelper->openSQLiteDB();
+        QMap<QString, QString>::const_iterator i;
+        for (i = zone_set_pro_map.constBegin(); i != zone_set_pro_map.constEnd(); ++i) {
+            QString sql = insertsql;
+            sql += i.value();
+            sql += "'";
+            sql += wheresql;
+            sql += i.key();
+            sql += "' and output <> 1";
+             qDebug()<<sql;
+            //sqlhelper->update(sql);
+             SQLHelper::update(sql);
 
+        }
+       // sqlhelper->closeSQLiteDB();
+
+            this->close();
+        }
+        else if (QString::compare(button->text(), "Cancel", Qt::CaseInsensitive) == 0){
+            this->close();
+        }
+        else{
+        }
 }
 
 void SetProDialog::update_tree_widget()

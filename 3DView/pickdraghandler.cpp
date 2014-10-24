@@ -4,7 +4,7 @@
 #include <osgUtil/LineSegmentIntersector>
 #include <osgFX/Scribe>
 
-PickDragHandler::PickDragHandler():_activeDragger(0),
+PickDragHandler::PickDragHandler(osgText::Text *updateText):_activeDragger(0),
     _mx(0.0f),
     _my(0.0f),
     mode(VIEW)
@@ -12,6 +12,7 @@ PickDragHandler::PickDragHandler():_activeDragger(0),
     manager = new osgManipulator::CommandManager;
     selection = new osgManipulator::Selection;
     dragger = new osgManipulator::TranslateAxisDragger;
+    _updateText = updateText;
 }
 
 
@@ -121,6 +122,12 @@ bool PickDragHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionA
                           return false;
                           break;
                       }
+                  case (osgGA::GUIEventAdapter::FRAME):
+                      {
+                         view->getCamera()->getViewMatrixAsLookAt(position, center, up);
+                         refreshHUD(view, ea);
+                      }
+                              break;
 
                       default:
                           return false;
@@ -166,6 +173,8 @@ bool PickDragHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionA
                       case osgGA::GUIEventAdapter::DRAG:
                       case osgGA::GUIEventAdapter::RELEASE:
                       {
+                          view->getCamera()->getViewMatrixAsLookAt(position, center, up);
+                          refreshHUD(view, ea);
                           if (_activeDragger)
                           {
                               _pointer._hitIter = _pointer._hitList.begin();
@@ -182,6 +191,12 @@ bool PickDragHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionA
                             }
                           break;
                       }
+                  case (osgGA::GUIEventAdapter::FRAME):
+                      {
+                         view->getCamera()->getViewMatrixAsLookAt(position, center, up);
+                         refreshHUD(view, ea);
+                      }
+                              break;
                       //select object to drag
                      case osgGA::GUIEventAdapter::DOUBLECLICK:
                      {
@@ -239,3 +254,16 @@ bool PickDragHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionA
 
 }
 
+void PickDragHandler::refreshHUD(osgViewer::View* viewer, const osgGA::GUIEventAdapter& ea){
+    //osgUtil::LineSegmentIntersector::Intersections intersections;
+    std::string gdlist="";
+    std :: ostringstream os;
+    os<<"Position X:"<<position[0]<<" Y:"<<position[1]<<" Z:"<<position[2]<<endl;
+    os<<"Center X:"<<center[0]<<" Y:"<<center[1]<<"  Z:"<<center[2]<<endl;
+    os<<"Up X:"<<up[0]<<"Y:"<<up[1]<<"Z:"<<up[2];
+
+    gdlist += os.str();
+    setLabel(gdlist);
+
+
+}

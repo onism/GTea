@@ -10,22 +10,22 @@ AddBoundAco::AddBoundAco(QWidget *parent) :
 
 }
 
-void AddBoundAco::setItem(QList<QString> structure)
-{
-    ui->comboBox_2->clear();
-    int n = structure.size();
-    if( n > 0 ){
-       for(int i = 0; i < n; i++){
-           ui->comboBox_2->addItem(structure.at(i));
-       }
-    }else{
+//void AddBoundAco::setItem(QList<QString> structure)
+//{
+//    ui->comboBox_2->clear();
+//    int n = structure.size();
+//    if( n > 0 ){
+//       for(int i = 0; i < n; i++){
+//           ui->comboBox_2->addItem(structure.at(i));
+//       }
+//    }else{
 
-    }
-}
-void AddBoundAco::getcurrenttex()
-{
-    str = ui->comboBox_2->currentText();
-}
+//    }
+//}
+//void AddBoundAco::getcurrenttex()
+//{
+//    str = ui->comboBox_2->currentText();
+//}
 AddBoundAco::~AddBoundAco()
 {
     delete ui;
@@ -33,7 +33,7 @@ AddBoundAco::~AddBoundAco()
 
 
 
-void AddBoundAco::on_buttonBox_clicked(QAbstractButton *button)
-{
-    getcurrenttex();
-}
+//void AddBoundAco::on_buttonBox_clicked(QAbstractButton *button)
+//{
+//    getcurrenttex();
+//}

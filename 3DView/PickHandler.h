@@ -12,6 +12,7 @@
 #include <osgManipulator/Selection>
 #include <osgManipulator/CommandManager>
 #include <osgManipulator/TranslateAxisDragger>
+#include <osgText/Text>
 class PickHandler: public osgGA::GUIEventHandler
 {
 public:
@@ -45,7 +46,9 @@ private:
     double m_dbMouseLastGetYNormalized;
     double m_dbMouseLastGetX;
     double m_dbMouseLastGetY;
-
+    osg::Vec3 position;
+    osg::Vec3 center;
+    osg::Vec3 up;
 
 };
 

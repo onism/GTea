@@ -13,20 +13,19 @@ SQLHelper::SQLHelper()
 {
 }
 
+QSqlDatabase SQLHelper::dbLink = QSqlDatabase::addDatabase("QSQLITE");
 
 
 bool SQLHelper::openSQLiteDB()
 {
     // SQL Driver
-    dbLink = QSqlDatabase::addDatabase("QSQLITE");
-
+  //  dbLink = QSqlDatabase::addDatabase("QSQLITE");
 
     QString dbPath(QDir::current().path());
     dbPath.append(QDir::separator()).append("db").append(QDir::separator()).append("db.sqlite");
     dbPath = QDir::toNativeSeparators(dbPath);
 
 
-    qDebug() << dbPath;
 
 
     dbLink.setDatabaseName(dbPath);
@@ -39,6 +38,7 @@ void SQLHelper::closeSQLiteDB()
 {
 
     dbLink.close();
+
 }
 
 bool SQLHelper::createTable(QString sqlstring)
@@ -69,7 +69,7 @@ bool SQLHelper::insertRow(QString  sqlstring)
         QSqlQuery query;
         query.prepare(sqlstring);
         if (!query.exec())
-            qDebug() << "Insert: " << ret << this->lastError();
+            qDebug() << "Insert: " << ret <<  lastError();
         else
             ret = 1;
     }
@@ -92,7 +92,7 @@ bool SQLHelper::deleteRow(QString sqlstring)
         QSqlQuery query;
         query.prepare(sqlstring);
         if (!query.exec())
-            qDebug() << "delete: " << ret << this->lastError();
+            qDebug() << "delete: " << ret <<  lastError();
         else
             ret = 1;
     }
@@ -108,4 +108,39 @@ bool SQLHelper::deleteAll()
 QSqlError SQLHelper::lastError()
 {
     return dbLink.lastError();
+}
+
+bool SQLHelper::update(QString sqlstring)
+{
+    bool ret = false;
+
+
+    if (dbLink.isOpen())
+    {
+        QSqlQuery query;
+        query.prepare(sqlstring);
+        if (!query.exec())
+            qDebug() << "update: " << ret <<  lastError();
+        else
+            ret = 1;
+    }
+
+    return ret;
+}
+
+QList<QString> SQLHelper::selectbysql(QString sqlstring)
+{
+
+    QList<QString> namelist;
+    if (dbLink.isOpen())
+    {
+        QSqlQuery query;
+        query.exec(sqlstring);
+        while (query.next()) {
+            QString name = query.value(0).toString();
+            namelist.push_back(name);
+        }
+    }
+    return namelist;
+
 }
