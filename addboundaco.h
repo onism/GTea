@@ -23,6 +23,8 @@ private slots:
 //    void getcurrenttex();
 
 //    void on_buttonBox_clicked(QAbstractButton *button);
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
 };
 
 #endif // ADDBOUNDACO_H

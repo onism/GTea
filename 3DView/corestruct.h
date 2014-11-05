@@ -1,12 +1,21 @@
-#ifndef CORESTRUCT_H
-#define CORESTRUCT_H
+/*******************************************************************************
+ * File:        corestruct.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
+
+
+
+#ifndef _CORESTRUCT_H
+#define	_CORESTRUCT_H
+
 /*******************************************************************************
 * Keep C++ compilers from getting confused
 *******************************************************************************/
 #ifdef	__cplusplus
 extern "C" {
 #endif
-
+    
     /* Structure Declarations */
     /* Structure for Descriptor */
     typedef struct _DESC {
@@ -14,13 +23,13 @@ extern "C" {
         char name[33];
         char *desc;
     } DESC;
-
+    
     /* Structure for Vertex */
     typedef struct _VERTEX {
         int id;
         double x, y, z, w;
     } VERTEX;
-
+    
     /* Structure for Element Set */
     typedef struct _ELEMSET {
         int id;
@@ -34,7 +43,7 @@ extern "C" {
         int psize;
         int *parent;
     } ELEMSET;
-
+    
     /* Structure for Interface */
     typedef struct _INTERFACE {
         int id;
@@ -45,7 +54,7 @@ extern "C" {
         int transform[3];
         int d_zone;
     } INTERFACE_CGNS;
-
+    
     /* Structure for Zone Grid Connectivity */
     typedef struct _CONNECT {
         int id;
@@ -62,7 +71,7 @@ extern "C" {
         int *d_pnts;
         int d_zone;
     } CONNECT;
-
+    
     /* Structure for Boundary Condition */
     typedef struct _BOCO {
         int id;
@@ -76,7 +85,7 @@ extern "C" {
         int n_type;
         double *n_list;
     } BOCO;
-
+    
     /* Structure for Field */
     typedef struct _FIELD {
         int id;
@@ -90,7 +99,7 @@ extern "C" {
         double exponent[5];
         double *data;
     } FIELD;
-
+    
     /* Structure for Solution */
     typedef struct _SOLUTION {
         int id;
@@ -105,7 +114,7 @@ extern "C" {
         int ndesc;
         DESC *desc;
     } SOLUTION;
-
+    
     /* Structure for Zone */
     typedef struct _ZONE {
         int id;
@@ -132,7 +141,7 @@ extern "C" {
         int ndesc;
         DESC *desc;
     } ZONE;
-
+    
     /* Struture for Base */
     typedef struct _BASE {
         int id;
@@ -146,7 +155,7 @@ extern "C" {
         int ndesc;
         DESC *desc;
     } BASE;
-
+    
     /* Struture for CFDDB */
     typedef struct _ROOT {
         int nbases;
@@ -154,11 +163,13 @@ extern "C" {
         int ndesc;
         DESC *desc;
     } ROOT;
-
+    
 /*******************************************************************************
 * Keep C++ compilers from getting confused
 *******************************************************************************/
 #ifdef	__cplusplus
 }
 #endif
-#endif // CORESTRUCT_H
+
+#endif	/* _CORESTRUCT_H */
+

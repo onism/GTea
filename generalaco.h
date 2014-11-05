@@ -15,6 +15,11 @@ public:
     explicit GeneralAco(QWidget *parent = 0);
     ~GeneralAco();
 
+private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::GeneralAco *ui;
 };

@@ -15,6 +15,11 @@ public:
     explicit Material(QWidget *parent = 0);
     ~Material();
 
+private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::Material *ui;
 };

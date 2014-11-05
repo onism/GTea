@@ -28,6 +28,7 @@ private:
     QString set_filename;
     void update_tree_widget();
     int set_filetype;//1 cgns 2 msh
+    int file_count;
 };
 
 #endif // SETPRODIALOG_H

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
+
 #include <Windows.h>
 #include <QMessageBox>
 #include <DbgHelp.h>
@@ -20,6 +21,7 @@ LONG ApplicationCrashHandler(EXCEPTION_POINTERS *pException){//程式异常捕�
         QMessageBox::Ok);
     return EXCEPTION_EXECUTE_HANDLER;
 }
+
 
 int main(int argc, char *argv[])
 {

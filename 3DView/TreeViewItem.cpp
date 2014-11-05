@@ -3,13 +3,13 @@
 TreeViewItem::TreeViewItem()
 : QTreeWidgetItem()
 {
-    setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled );
+    setFlags( Qt::ItemIsUserCheckable  | Qt::ItemIsSelectable | Qt::ItemIsEnabled );
 }
 
 TreeViewItem::TreeViewItem(TreeViewItem *parent, int type)
 : QTreeWidgetItem(parent, type)
 {
-    setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled );
+    setFlags( Qt::ItemIsUserCheckable  | Qt::ItemIsSelectable | Qt::ItemIsEnabled );
 }
 
 void TreeViewItem::setOsgNode(osg::Node* node)

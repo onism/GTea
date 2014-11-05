@@ -15,6 +15,11 @@ public:
     explicit Initial_Str(QWidget *parent = 0);
     ~Initial_Str();
 
+private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::Initial_Str *ui;
 };

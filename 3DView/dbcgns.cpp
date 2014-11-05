@@ -1,80 +1,94 @@
-#include "dbcgns.h"
-#include <windows.h>
+/*******************************************************************************
+ * File:        DBCGNS.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
+
+
+
+#include <cstring>
 #include <malloc.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 #include <stdlib.h>
+
+
+#include "DBCGNS.h"
+
+// Database Specific Header
 #include "corelib.h"
-#include "db.h"
-#include "dbcgns_io.h"
-#include <QDebug>
+#include "cgnsIO.h"
+
+//------------------------------------------------------------------------------
+//! Constructor
+//------------------------------------------------------------------------------
 DBCGNS::DBCGNS()
 {
+    // DB Constructor will be automatically called first
 }
 
-
+//------------------------------------------------------------------------------
+//! Copy Construtor
+//------------------------------------------------------------------------------
 DBCGNS::DBCGNS(const DBCGNS& other)
 {
     // DB Constructor will be automatically called first
     // Copy the Attributes information
-    char *tmp  = NULL;
-    size_t len = 0;
-    tmp = other.Get_InputGrid_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputGFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputGFile);
-        inputGFile = strcpy(inputGFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_InputParam_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputPFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputPFile);
-        inputPFile = strcpy(inputPFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_InputSolution_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputSFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputSFile);
-        inputSFile = strcpy(inputSFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputGrid_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputGFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputGFile);
-        outputGFile = strcpy(outputGFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputParam_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputPFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputPFile);
-        outputPFile = strcpy(outputPFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputSolution_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputSFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputSFile);
-        outputSFile = strcpy(outputSFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-
+//    char *tmp  = NULL;
+//    size_t len = 0;
+//    tmp = other.Get_InputGrid_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputGFile);
+//        inputGFile = strcpy(inputGFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_InputParam_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputPFile);
+//        inputPFile = strcpy(inputPFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_InputSolution_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputSFile);
+//        inputSFile = strcpy(inputSFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputGrid_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputGFile);
+//        outputGFile = strcpy(outputGFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputParam_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputPFile);
+//        outputPFile = strcpy(outputPFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputSolution_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputSFile);
+//        outputSFile = strcpy(outputSFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+    
     // Copy the containts of other
     if (other.isParent())
         Copy(other.Get_DB());
@@ -99,84 +113,84 @@ DBCGNS& DBCGNS::operator=(const DBCGNS& other)
     // Avoid Self Assignment
     if (&other != this) {
         // Free the memory used for cstrings
-        if (inputGFile != NULL)
-            free(inputGFile);
-        if (inputPFile != NULL)
-            free(inputPFile);
-        if (inputSFile != NULL)
-            free(inputSFile);
-        if (outputGFile != NULL)
-            free(outputGFile);
-        if (outputPFile != NULL)
-            free(outputPFile);
-        if (outputSFile != NULL)
-            free(outputSFile);
+//        if (inputGFile != NULL)
+//            free(inputGFile);
+//        if (inputPFile != NULL)
+//            free(inputPFile);
+//        if (inputSFile != NULL)
+//            free(inputSFile);
+//        if (outputGFile != NULL)
+//            free(outputGFile);
+//        if (outputPFile != NULL)
+//            free(outputPFile);
+//        if (outputSFile != NULL)
+//            free(outputSFile);
 
         // Initialize the attributes
-        inputGFile  = NULL;
-        inputPFile  = NULL;
-        inputSFile  = NULL;
-        outputGFile = NULL;
-        outputPFile = NULL;
-        outputSFile = NULL;
+//        inputGFile  = NULL;
+//        inputPFile  = NULL;
+//        inputSFile  = NULL;
+//        outputGFile = NULL;
+//        outputPFile = NULL;
+//        outputSFile = NULL;
 
         // Copy the Attributes information
-        char *tmp  = NULL;
-        size_t len = 0;
-        tmp = other.Get_InputGrid_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputGFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputGFile);
-            inputGFile = strcpy(inputGFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_InputParam_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputPFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputPFile);
-            inputPFile = strcpy(inputPFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_InputSolution_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputSFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputSFile);
-            inputSFile = strcpy(inputSFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputGrid_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputGFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputGFile);
-            outputGFile = strcpy(outputGFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputParam_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputPFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputPFile);
-            outputPFile = strcpy(outputPFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputSolution_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputSFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputSFile);
-            outputSFile = strcpy(outputSFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
+//        char *tmp  = NULL;
+//        size_t len = 0;
+//        tmp = other.Get_InputGrid_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputGFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputGFile);
+//            inputGFile = strcpy(inputGFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_InputParam_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputPFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputPFile);
+//            inputPFile = strcpy(inputPFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_InputSolution_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputSFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputSFile);
+//            inputSFile = strcpy(inputSFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputGrid_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputGFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputGFile);
+//            outputGFile = strcpy(outputGFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputParam_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputPFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputPFile);
+//            outputPFile = strcpy(outputPFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputSolution_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputSFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputSFile);
+//            outputSFile = strcpy(outputSFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
 
         // Check if CoreDB is not resigned back after multiple share
         if (other.Get_DB() == NULL) {
@@ -207,11 +221,11 @@ void DBCGNS::Read_DB()
 {
     int mode = 0;
     // Check the inputs files names
-    if ((inputGFile != NULL) && (file_exists(inputGFile)))
+    if ((inputGFile != NULL) && (file_exists(inputGFile.toStdString().c_str())))
         mode |= 1;
-    if ((inputSFile != NULL) && (file_exists(inputSFile)))
+    if ((inputSFile != NULL) && (file_exists(inputSFile.toStdString().c_str())))
         mode |= 2;
-    if ((inputPFile != NULL) && (file_exists(inputPFile)))
+    if ((inputPFile != NULL) && (file_exists(inputPFile.toStdString().c_str())))
         mode |= 4;
 
     // Read only if Grid File is available
@@ -219,7 +233,7 @@ void DBCGNS::Read_DB()
         // Reset the database if it contains data
         if (CoreDB != NULL)
             Set_DB(NULL);
-
+        
         if (!Read_CGNS_DB(mode)) {
             // Register now with DB Manager
             state  = 1;
@@ -235,17 +249,19 @@ void DBCGNS::Write_DB()
 {
     int mode = 0;
     // Check the output file names
-    if ((outputGFile != NULL) && (!file_exists(outputGFile)))
+    if ((outputGFile != NULL) && (!file_exists(outputGFile.toStdString().c_str())))
         mode |= 1;
-    if ((outputSFile != NULL) && (!file_exists(outputSFile)))
+    if ((outputSFile != NULL) && (!file_exists(outputSFile.toStdString().c_str())))
         mode |= 2;
-    if ((outputPFile != NULL) && (!file_exists(outputPFile)))
+    if ((outputPFile != NULL) && (!file_exists(outputPFile.toStdString().c_str())))
         mode |= 4;
 
     // Write only if grid the file doesnt exist rest are skiped if exists
     if ((mode & 1) == 1)
         Write_CGNS_DB(mode);
 }
+
+
 
 
 
@@ -257,12 +273,12 @@ int DBCGNS::Read_CGNS_GridFile()
 {
     // Initialize the CGNSIO Library
     CGNSIO_INIT();
-
+    
     // Open CGNS Grid File to Read in Mode Read only
     int mode = 1;
-    if(open_cgns(inputGFile, mode))
+    if(open_cgns(inputGFile.toStdString().c_str(), mode))
         return DB_ERROR;
-
+    
     // Read the CGNS Database and Update the data structue
     // Get the Number of Bases
     CoreDB->nbases = get_cgns_nbases();
@@ -270,7 +286,7 @@ int DBCGNS::Read_CGNS_GridFile()
         CoreDB->bases = new_base(CoreDB->nbases);
         if (CoreDB->bases == NULL)
             return DB_ERROR;
-
+        
         BASE *qbase = NULL;
         for (int nb = 1; nb <= CoreDB->nbases; nb++) {
             qbase = get_cgns_base(nb);
@@ -296,14 +312,14 @@ int DBCGNS::Read_CGNS_GridFile()
             }
         }
     }
-
+    
     // Close CGNS Database
     if (close_cgns())
         return DB_ERROR;
-
+    
     // Finalize the CGNSIO Library
     CGNSIO_FINI();
-
+    
     return DB_OK;
 }
 
@@ -317,9 +333,9 @@ int DBCGNS::Read_CGNS_SolutionFile()
 
     // Open CGNS Solution File to Read in Mode Read only
     int mode = 1;
-    if(open_cgns(inputSFile, mode))
+    if(open_cgns(inputSFile.toStdString().c_str(), mode))
         return DB_ERROR;
-
+    
     // Read the CGNS Database and Update the data structue
     // Get the Number of Bases
     int nbases = get_cgns_nbases();
@@ -333,7 +349,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
             min = nbases;
         else
             min = CoreDB->nbases;
-
+        
         for (int nb = 1; nb <= min; nb++) {
             qbase = get_cgns_base(nb);
             if (qbase != NULL) {
@@ -366,7 +382,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
                             CoreDB->bases[nb-1].zones[nz-1].sols = new_solution(CoreDB->bases[nb-1].zones[nz-1].nsols);
                             if (CoreDB->bases[nb-1].zones[nz-1].sols == NULL)
                                 return DB_ERROR;
-
+                            
                             // Get Back the Orignal Data
                             for (int ns = 1; ns <= nsol; ns++) {
                                 CoreDB->bases[nb-1].zones[nz-1].sols[ns-1].id        = sol[ns-1].id;
@@ -419,7 +435,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
                                 qbase->zones[nz-1].sols[ns-nsol-1].ndesc = 0;
                                 qbase->zones[nz-1].sols[ns-nsol-1].desc  = NULL;
                             }
-
+                            
                             // Free the Solution
                             del_solution(sol);
                             sol = NULL;
@@ -428,14 +444,14 @@ int DBCGNS::Read_CGNS_SolutionFile()
                         qbase->zones[nz-1].sols  = NULL;
                     }
                 }
-
+                
                 // Now Reset the data and free the qbase
                 del_base(qbase);
                 qbase = NULL;
             }
         }
     }
-
+    
     // Close CGNS Database
     if (close_cgns())
         return DB_ERROR;
@@ -467,7 +483,7 @@ int DBCGNS::Read_CGNS_DB(int mode)
         }
     } else
         return DB_ERROR;
-
+    
     // Read Solution File
     if ((mode & 2) == 2) {
         if (Read_CGNS_SolutionFile()) {
@@ -481,7 +497,7 @@ int DBCGNS::Read_CGNS_DB(int mode)
             return DB_ERROR;
         }
     }
-
+    
     return DB_OK;
 }
 
@@ -495,9 +511,9 @@ int DBCGNS::Write_CGNS_GridFile(int mode)
     CGNSIO_INIT();
 
     // Open CGNS Grid File
-    if(open_cgns(outputGFile, outputGIOMode))
+    if(open_cgns(outputGFile.toStdString().c_str(), outputGIOMode))
         return DB_ERROR;
-
+    
     // Write the Database if Data is available
     if (CoreDB->nbases > 0) {
         for (int nb = 1; nb <= CoreDB->nbases; nb++) {
@@ -512,11 +528,11 @@ int DBCGNS::Write_CGNS_GridFile(int mode)
                     }
                 }
             }
-
+            
             // Now Write Base to File
             if (set_cgns_base(&CoreDB->bases[nb-1]))
                 return DB_ERROR;
-
+            
             // Restore back the Solution Parameter
             if((mode &2) == 2) {
                 if (z != NULL) {
@@ -530,7 +546,7 @@ int DBCGNS::Write_CGNS_GridFile(int mode)
             }
         }
     }
-
+    
     // Close CGNS Database
     if (close_cgns())
         return DB_ERROR;
@@ -550,9 +566,9 @@ int DBCGNS::Write_CGNS_SolutionFile()
     CGNSIO_INIT();
 
     // Open CGNS Solution File
-    if(open_cgns(outputSFile, outputSIOMode))
+    if(open_cgns(outputSFile.toStdString().c_str(), outputSIOMode))
         return DB_ERROR;
-
+    
     // Write the Database if Data is available
     if (CoreDB->nbases > 0) {
         for (int nb = 1; nb <= CoreDB->nbases; nb++) {
@@ -603,7 +619,7 @@ int DBCGNS::Write_CGNS_SolutionFile()
             }
         }
     }
-
+    
     // Close CGNS Database
     if (close_cgns())
         return DB_ERROR;
@@ -634,7 +650,7 @@ int DBCGNS::Write_CGNS_DB(int mode)
         }
     } else
         return DB_ERROR;
-
+    
     // Write Solution File
     if ((mode & 2) == 2) {
         if (Write_CGNS_SolutionFile()) {
@@ -650,3 +666,4 @@ int DBCGNS::Write_CGNS_DB(int mode)
     }
     return DB_OK;
 }
+

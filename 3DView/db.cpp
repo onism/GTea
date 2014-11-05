@@ -1,21 +1,29 @@
-#include "db.h"
-#include <windows.h>
+/*******************************************************************************
+ * File:        DB.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
+
+
+
+#include <cstring>
 #include <malloc.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
+
 #include "corelib.h"
-#include "cgnslib.h"
-DB::DB()
-{
+#include "DB.h"
+
+//------------------------------------------------------------------------------
+//! Constructor
+//------------------------------------------------------------------------------
+DB::DB() {
+    // Initialize Attributes
     CoreDB        = NULL;
-    inputGFile    = NULL;
-    inputPFile    = NULL;
-    inputSFile    = NULL;
-    outputGFile   = NULL;
-    outputPFile   = NULL;
-    outputSFile   = NULL;
+    inputGFile    = "";
+    inputPFile    =  "";
+    inputSFile    = " ";
+    outputGFile   =  "";
+    outputPFile   = "";
+    outputSFile   = "";
     parent        = 0;
     state         = 0;
     outputGIOMode = 3;
@@ -23,81 +31,82 @@ DB::DB()
     outputSIOMode = 3;
 }
 
-
 //------------------------------------------------------------------------------
 //! Copy Constructor: It is deep copy
 //------------------------------------------------------------------------------
 DB::DB(const DB& other) {
     // Initialize Attributes
     CoreDB      = NULL;
-    inputGFile  = NULL;
-    inputPFile  = NULL;
-    inputSFile  = NULL;
-    outputGFile = NULL;
-    outputPFile = NULL;
-    outputSFile = NULL;
+//    inputGFile  = NULL;
+//    inputPFile  = NULL;
+//    inputSFile  = NULL;
+//    outputGFile = NULL;
+//    outputPFile = NULL;
+//    outputSFile = NULL;
     // Copy the Attributes information
-    char *tmp  = NULL;
-    size_t len = 0;
-    tmp = other.Get_InputGrid_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputGFile = (char *) malloc((len+1)*sizeof(char));
-       // str_blank(inputGFile);
-        inputGFile = strcpy(inputGFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_InputParam_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputPFile = (char *) malloc((len+1)*sizeof(char));
-      //  str_blank(inputPFile);
-        inputPFile = strcpy(inputPFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_InputSolution_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        inputSFile = (char *) malloc((len+1)*sizeof(char));
-       // str_blank(inputSFile);
-        inputSFile = strcpy(inputSFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputGrid_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputGFile = (char *) malloc((len+1)*sizeof(char));
-        //str_blank(outputGFile);
-        outputGFile = strcpy(outputGFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputParam_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputPFile = (char *) malloc((len+1)*sizeof(char));
-       // str_blank(outputPFile);
-        outputPFile = strcpy(outputPFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
-    tmp = other.Get_OutputSolution_Filename();
-    if (tmp != NULL) {
-        len = strlen(tmp);
-        outputSFile = (char *) malloc((len+1)*sizeof(char));
-       // str_blank(outputSFile);
-        outputSFile = strcpy(outputSFile, tmp);
-        tmp = NULL;
-        len = 0;
-    }
+    inputGFile = other.Get_InputGrid_Filename();
+    outputGFile = other.Get_OutputGrid_Filename();
+//    char *tmp  = NULL;
+//    size_t len = 0;
+//    tmp = other.Get_InputGrid_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputGFile);
+//        inputGFile = strcpy(inputGFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_InputParam_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputPFile);
+//        inputPFile = strcpy(inputPFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_InputSolution_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        inputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputSFile);
+//        inputSFile = strcpy(inputSFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputGrid_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputGFile);
+//        outputGFile = strcpy(outputGFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputParam_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputPFile);
+//        outputPFile = strcpy(outputPFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
+//    tmp = other.Get_OutputSolution_Filename();
+//    if (tmp != NULL) {
+//        len = strlen(tmp);
+//        outputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputSFile);
+//        outputSFile = strcpy(outputSFile, tmp);
+//        tmp = NULL;
+//        len = 0;
+//    }
 
     outputGIOMode = other.Get_OuputGrid_IOMode();
     outputPIOMode = other.Get_OuputParam_IOMode();
     outputSIOMode = other.Get_OutputSolution_IOMode();
-
+    
     // Copy the containts of other
     if (other.isParent())
         Copy(other.Get_DB());
@@ -112,9 +121,9 @@ DB::~DB() {
     // Free the memory used for CoreDB
     if (parent)
         Reset_DB();
-
-     CoreDB = NULL;
-
+    
+    CoreDB = NULL;
+    
     // Free the memory used for cstrings
 //    if (inputGFile != NULL)
 //        free(inputGFile);
@@ -137,84 +146,84 @@ DB& DB::operator=(const DB& other) {
     // Avoid Self Assignment
     if (&other != this) {
         // Free the memory used for cstrings
-        if (inputGFile != NULL)
-            free(inputGFile);
-        if (inputPFile != NULL)
-            free(inputPFile);
-        if (inputSFile != NULL)
-            free(inputSFile);
-        if (outputGFile != NULL)
-            free(outputGFile);
-        if (outputPFile != NULL)
-            free(outputPFile);
-        if (outputSFile != NULL)
-            free(outputSFile);
+//        if (inputGFile != NULL)
+//            free(inputGFile);
+//        if (inputPFile != NULL)
+//            free(inputPFile);
+//        if (inputSFile != NULL)
+//            free(inputSFile);
+//        if (outputGFile != NULL)
+//            free(outputGFile);
+//        if (outputPFile != NULL)
+//            free(outputPFile);
+//        if (outputSFile != NULL)
+//            free(outputSFile);
 
         // Initialize the attributes
-        inputGFile  = NULL;
-        inputPFile  = NULL;
-        inputSFile  = NULL;
-        outputGFile = NULL;
-        outputPFile = NULL;
-        outputSFile = NULL;
+//        inputGFile  = NULL;
+//        inputPFile  = NULL;
+//        inputSFile  = NULL;
+//        outputGFile = NULL;
+//        outputPFile = NULL;
+//        outputSFile = NULL;
 
         // Copy the Attributes information
-        char *tmp  = NULL;
-        size_t len = 0;
-        tmp = other.Get_InputGrid_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputGFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputGFile);
-            inputGFile = strcpy(inputGFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_InputParam_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputPFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputPFile);
-            inputPFile = strcpy(inputPFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_InputSolution_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            inputSFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(inputSFile);
-            inputSFile = strcpy(inputSFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputGrid_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputGFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputGFile);
-            outputGFile = strcpy(outputGFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputParam_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputPFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputPFile);
-            outputPFile = strcpy(outputPFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
-        tmp = other.Get_OutputSolution_Filename();
-        if (tmp != NULL) {
-            len = strlen(tmp);
-            outputSFile = (char *) malloc((len+1)*sizeof(char));
-            str_blank(outputSFile);
-            outputSFile = strcpy(outputSFile, tmp);
-            tmp = NULL;
-            len = 0;
-        }
+//        char *tmp  = NULL;
+//        size_t len = 0;
+//        tmp = other.Get_InputGrid_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputGFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputGFile);
+//            inputGFile = strcpy(inputGFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_InputParam_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputPFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputPFile);
+//            inputPFile = strcpy(inputPFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_InputSolution_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            inputSFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(inputSFile);
+//            inputSFile = strcpy(inputSFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputGrid_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputGFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputGFile);
+//            outputGFile = strcpy(outputGFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputParam_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputPFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputPFile);
+//            outputPFile = strcpy(outputPFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
+//        tmp = other.Get_OutputSolution_Filename();
+//        if (tmp != NULL) {
+//            len = strlen(tmp);
+//            outputSFile = (char *) malloc((len+1)*sizeof(char));
+//            str_blank(outputSFile);
+//            outputSFile = strcpy(outputSFile, tmp);
+//            tmp = NULL;
+//            len = 0;
+//        }
 
         outputGIOMode = other.Get_OuputGrid_IOMode();
         outputPIOMode = other.Get_OuputParam_IOMode();
@@ -293,29 +302,29 @@ void DB::Reset() {
     // Free the memory used for CoreDB
     if(parent)
         Reset_DB();
-
+    
     // Free the memory used for cstrings
-    if (inputGFile != NULL)
-        free(inputGFile);
-    if (inputPFile != NULL)
-        free(inputPFile);
-    if (inputSFile != NULL)
-        free(inputSFile);
-    if (outputGFile != NULL)
-        free(outputGFile);
-    if (outputPFile != NULL)
-        free(outputPFile);
-    if (outputSFile != NULL)
-        free(outputSFile);
+//    if (inputGFile != NULL)
+//        free(inputGFile);
+//    if (inputPFile != NULL)
+//        free(inputPFile);
+//    if (inputSFile != NULL)
+//        free(inputSFile);
+//    if (outputGFile != NULL)
+//        free(outputGFile);
+//    if (outputPFile != NULL)
+//        free(outputPFile);
+//    if (outputSFile != NULL)
+//        free(outputSFile);
 
     // Initialize the attributes
     CoreDB      = NULL;
-    inputGFile  = NULL;
-    inputPFile  = NULL;
-    inputSFile  = NULL;
-    outputGFile = NULL;
-    outputPFile = NULL;
-    outputSFile = NULL;
+//    inputGFile  = NULL;
+//    inputPFile  = NULL;
+//    inputSFile  = NULL;
+//    outputGFile = NULL;
+//    outputPFile = NULL;
+//    outputSFile = NULL;
     parent      = 0;
     state       = 0;
 }
@@ -323,79 +332,85 @@ void DB::Reset() {
 //------------------------------------------------------------------------------
 //! Sets the Input Grid File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputGrid_Filename(const char* filename) {
+void DB::Set_InputGrid_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        inputGFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputGFile);
-        inputGFile = strcpy(inputGFile, filename);
+//        size_t len = strlen(filename);
+//        inputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputGFile);
+//        inputGFile = strcpy(inputGFile, filename);
+        inputGFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Sets the Input Parameter File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputParam_Filename(const char* filename) {
+void DB::Set_InputParam_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        inputPFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputPFile);
-        inputPFile = strcpy(inputPFile, filename);
+//        size_t len = strlen(filename);
+//        inputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputPFile);
+//        inputPFile = strcpy(inputPFile, filename);
+        inputPFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Sets the Input Solution File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputSolution_Filename(const char* filename) {
+void DB::Set_InputSolution_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        inputSFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(inputSFile);
-        inputSFile = strcpy(inputSFile, filename);
+//        size_t len = strlen(filename);
+//        inputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(inputSFile);
+//        inputSFile = strcpy(inputSFile, filename);
+        inputSFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Sets the Output Grid File Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputGrid_Filename(const char* filename) {
+void DB::Set_OutputGrid_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        outputGFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputGFile);
-        outputGFile = strcpy(outputGFile, filename);
+//        size_t len = strlen(filename);
+//        outputGFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputGFile);
+//        outputGFile = strcpy(outputGFile, filename);
+        outputGFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Sets the Output Parameter Files Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputParam_Filename(const char* filename) {
+void DB::Set_OutputParam_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        outputPFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputPFile);
-        outputPFile = strcpy(outputPFile, filename);
+//        size_t len = strlen(filename);
+//        outputPFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputPFile);
+//        outputPFile = strcpy(outputPFile, filename);
+        outputPFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Sets the Output Solution File Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputSolution_Filename(const char* filename) {
+void DB::Set_OutputSolution_Filename(QString filename) {
     if (filename != NULL) {
-        size_t len = strlen(filename);
-        outputSFile = (char *) malloc((len+1)*sizeof(char));
-        str_blank(outputSFile);
-        outputSFile = strcpy(outputSFile, filename);
+//        size_t len = strlen(filename);
+//        outputSFile = (char *) malloc((len+1)*sizeof(char));
+//        str_blank(outputSFile);
+//        outputSFile = strcpy(outputSFile, filename);
+        outputSFile = filename;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Retrives the Input Grid File Name
 //------------------------------------------------------------------------------
-char* DB::Get_InputGrid_Filename() const {
+QString DB::Get_InputGrid_Filename() const {
     if (inputGFile != NULL)
         return inputGFile;
     else
@@ -405,7 +420,7 @@ char* DB::Get_InputGrid_Filename() const {
 //------------------------------------------------------------------------------
 //! Retrives the Input Parameter File Name
 //------------------------------------------------------------------------------
-char* DB::Get_InputParam_Filename() const {
+QString DB::Get_InputParam_Filename() const {
     if (inputPFile != NULL)
         return inputPFile;
     else
@@ -415,7 +430,7 @@ char* DB::Get_InputParam_Filename() const {
 //------------------------------------------------------------------------------
 //! Retrives the Input Solution File Name
 //------------------------------------------------------------------------------
-char* DB::Get_InputSolution_Filename() const {
+QString DB::Get_InputSolution_Filename() const {
     if (inputSFile != NULL)
         return inputSFile;
     else
@@ -425,7 +440,7 @@ char* DB::Get_InputSolution_Filename() const {
 //------------------------------------------------------------------------------
 //! Retrives the Output Grid File Name
 //------------------------------------------------------------------------------
-char* DB::Get_OutputGrid_Filename() const {
+QString DB::Get_OutputGrid_Filename() const {
     if (outputGFile != NULL)
         return outputGFile;
     else
@@ -435,7 +450,7 @@ char* DB::Get_OutputGrid_Filename() const {
 //------------------------------------------------------------------------------
 //! Retrives the Output Paramter File Name
 //------------------------------------------------------------------------------
-char* DB::Get_OutputParam_Filename() const {
+QString DB::Get_OutputParam_Filename() const {
     if (outputPFile != NULL)
         return outputPFile;
     else
@@ -445,7 +460,7 @@ char* DB::Get_OutputParam_Filename() const {
 //------------------------------------------------------------------------------
 //! Retrives the Output Solution File Name
 //------------------------------------------------------------------------------
-char* DB::Get_OutputSolution_Filename() const {
+QString DB::Get_OutputSolution_Filename() const {
     if (outputSFile != NULL)
         return outputSFile;
     else
@@ -526,7 +541,7 @@ int DB::Get_OutputSolution_IOMode() const {
 //------------------------------------------------------------------------------
 void DB::Copy(const ROOT* object) {
     int desc_len = 0;
-
+    
     // To avoid self assignment
     if ((object != NULL) && (CoreDB != object)) {
         // Clean the database

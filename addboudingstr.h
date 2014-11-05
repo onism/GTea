@@ -15,6 +15,11 @@ public:
     explicit AddBoudingStr(QWidget *parent = 0);
     ~AddBoudingStr();
 
+private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::AddBoudingStr *ui;
 };

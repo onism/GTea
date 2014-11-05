@@ -1,6 +1,20 @@
-#ifndef CORELIB_H
-#define CORELIB_H
+/*******************************************************************************
+ * File:        corelib.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
+
+
+#ifndef _CORELIB_H
+#define	_CORELIB_H
+
+/*******************************************************************************
+* Keep C++ compilers from getting confused
+*******************************************************************************/
+#ifdef	__cplusplus
+extern "C" {
+#endif
     #include "corestruct.h"
 
     #define CORELIB_OK      0
@@ -53,9 +67,12 @@
     int del_field(FIELD *POINTER);
     void str_blank(char *str);
     int file_exists(const char *file);
-
 /*******************************************************************************
 * Keep C++ compilers from getting confused
 *******************************************************************************/
+#ifdef	__cplusplus
+}
+#endif
 
-#endif // CORELIB_H
+#endif	/* _CORELIB_H */
+

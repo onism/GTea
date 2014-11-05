@@ -8,10 +8,14 @@
 #include "3DView/AdapterWidget.h"
 #include <QTreeWidget>
 #include "sqlhelper.h"
+
+#include <QCloseEvent>
+
 #include "modufyprodialog.h"
 #include <QCloseEvent>
 #include <QMap>
 #include "changepositiondialog.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -39,9 +43,11 @@ private:
 private slots:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
+
     void on_action_2_triggered();
 
     void on_action_4_triggered();
+
     void del_node();
   //  void on_treeWidget_customContextMenuRequested(const QPoint &pos);
     void on_loadtree_customContextMenuRequested(const QPoint &pos);
@@ -49,10 +55,12 @@ private slots:
     void openModel();
     void changeDlg();
     void modify_color();
-
     void modify_pro();
-
     void updateBounding();
+
+//    void modify_pro();
+
+//    void updateBounding();
 
   //  void change_map_objects(QString filename,QString zonename,float x,float y,float z,float angle);
     void change_map_objects(ChangeObject object);
@@ -60,12 +68,16 @@ private slots:
 
     void on_action_3_triggered();
 
+    void on_action_7_triggered();
+
 private:
     Ui::MainWindow *ui;
     QTreeWidget *load_tree;
     ViewerQT*	_glWidget;
     QAction* openModelAct;
     QAction * change_postion_Act;
+    QAction * save_Act;
+    QAction * sdlg_Act;
     QList<QString> zone_names;
     QList<QString> base_name;
     QList<QString> reg_names;
@@ -74,6 +86,14 @@ private:
     QMap<int ,ChangeObject> change_objects;
     void add_map_objects(QString filename,QString zonename);
     ChangePositionDialog *change_postion_dlg;
+
+    int file_dim;
+    int file_count;
+
+
+    void createTableFieldNames();//创建数据库表
+    void clearSQL();//清空数据库
+
 
 };
 

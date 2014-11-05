@@ -1,8 +1,9 @@
-#include "setprodialog.h"
+﻿#include "setprodialog.h"
 #include "ui_setprodialog.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QAbstractButton>
+#include <QMessageBox>
 #include "sqlhelper.h"
 SetProDialog::SetProDialog(QWidget *parent ) :
     QDialog(parent),
@@ -10,7 +11,7 @@ SetProDialog::SetProDialog(QWidget *parent ) :
 {
     ui->setupUi(this);
     ui->treeWidget->setHeaderLabels(QStringList() << "name" << "property");
-
+    file_count = 0;
 }
 
 SetProDialog::~SetProDialog()
@@ -25,7 +26,7 @@ void SetProDialog::setItem(QList<QString> zone_names, QString filename, int file
     set_filename = filename;
     set_filetype = filetype;
     int n = zone_names.size();
-
+    file_count = n;
     if( n > 0 ){
 
        for(int i = 0; i < n; i++){
@@ -81,7 +82,12 @@ void SetProDialog::on_pushButton_clicked()
 
 void SetProDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-   // qDebug()<<button->text();
+  if( zone_set_pro_map.size() != file_count )
+  {
+      QMessageBox::critical(NULL, "critical", "must set pro", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+      return;
+  }
     if (QString::compare(button->text(),"OK", Qt::CaseInsensitive) == 0){
             //write db
          QString insertsql;
@@ -95,8 +101,7 @@ void SetProDialog::on_buttonBox_clicked(QAbstractButton *button)
               insertsql = "update msh set type='";
               wheresql  = " where filename ='"+set_filename+"' and facename='";
         }
-        //SQLHelper * sqlhelper = new SQLHelper;
-       // sqlhelper->openSQLiteDB();
+
         QMap<QString, QString>::const_iterator i;
         for (i = zone_set_pro_map.constBegin(); i != zone_set_pro_map.constEnd(); ++i) {
             QString sql = insertsql;
@@ -112,10 +117,14 @@ void SetProDialog::on_buttonBox_clicked(QAbstractButton *button)
         }
        // sqlhelper->closeSQLiteDB();
 
+            accept();
             this->close();
         }
         else if (QString::compare(button->text(), "Cancel", Qt::CaseInsensitive) == 0){
-            this->close();
+            QMessageBox::critical(NULL, "critical", "must set pro", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+            reject();
+            return;
+
         }
         else{
         }

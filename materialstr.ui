@@ -1,72 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Location</class>
- <widget class="QDialog" name="Location">
+ <class>MaterialStr</class>
+ <widget class="QDialog" name="MaterialStr">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>628</width>
-    <height>374</height>
+    <width>400</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QTableWidget" name="tableWidget">
+  <widget class="QComboBox" name="comboBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>611</width>
-     <height>301</height>
+     <x>120</x>
+     <y>90</y>
+     <width>91</width>
+     <height>22</height>
     </rect>
    </property>
-   <column>
+   <item>
     <property name="text">
-     <string>域名</string>
+     <string>水</string>
     </property>
-   </column>
-   <column>
+   </item>
+   <item>
     <property name="text">
-     <string>x</string>
+     <string>空气</string>
     </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>y</string>
-    </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>z</string>
-    </property>
-   </column>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>340</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>保存</string>
-   </property>
+   </item>
   </widget>
   <widget class="QPushButton" name="pushButton_2">
    <property name="geometry">
     <rect>
-     <x>440</x>
-     <y>340</y>
+     <x>290</x>
+     <y>250</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
     <string>取消</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>250</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>确定</string>
    </property>
   </widget>
  </widget>

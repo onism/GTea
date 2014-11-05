@@ -31,9 +31,11 @@ BuildQtTreeView::BuildQtTreeView(osg::Node *node)
 , _maxTreeDepth(0)
 {
     TreeViewItem *item = new TreeViewItem();
+
     item->setText(0, QString::fromStdString(node->getName()));
     item->setIcon(0, QIcon(":/icons/TreeView/Group.png"));
     item->setOsgNode(node);
+
     item->setCheckState(0, Qt::Checked);
     _parents.push(item);
 }

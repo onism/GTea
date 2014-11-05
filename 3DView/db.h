@@ -1,23 +1,32 @@
-#ifndef DB_H
-#define DB_H
-#include  "corestruct.h"
+/*******************************************************************************
+ * File:        DB.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
+
+
+#ifndef _DB_H
+#define	_DB_H
+
+#include "corestruct.h"
+#include <QString>
 #define DB_OK       0
 #define DB_ERROR    1
 
 #define DB_READ     1
 #define DB_MODIFY   2
 #define DB_WRITE    3
-class DB
-{
+
+class DB {
 protected :
     //! Attributes
     ROOT* CoreDB;
-    char* inputGFile;
-    char* inputPFile;
-    char* inputSFile;
-    char* outputGFile;
-    char* outputPFile;
-    char* outputSFile;
+    QString inputGFile;
+    QString inputPFile;
+    QString inputSFile;
+    QString outputGFile;
+    QString outputPFile;
+    QString outputSFile;
     unsigned int outputGIOMode;
     unsigned int outputPIOMode;
     unsigned int outputSIOMode;
@@ -35,18 +44,18 @@ public:
     unsigned int getState() const;
     void Reset();
     DB& operator=(const DB& other);
-    void Set_InputGrid_Filename(const char* filename);
-    void Set_InputParam_Filename(const char* filename);
-    void Set_InputSolution_Filename(const char* filename);
-    void Set_OutputGrid_Filename(const char* filename);
-    void Set_OutputParam_Filename(const char* filename);
-    void Set_OutputSolution_Filename(const char* filename);
-    char* Get_InputGrid_Filename() const;
-    char* Get_InputParam_Filename() const;
-    char* Get_InputSolution_Filename() const;
-    char* Get_OutputGrid_Filename() const;
-    char* Get_OutputParam_Filename() const;
-    char* Get_OutputSolution_Filename() const;
+    void Set_InputGrid_Filename(QString filename);
+    void Set_InputParam_Filename(QString  filename);
+    void Set_InputSolution_Filename(QString filename);
+    void Set_OutputGrid_Filename(QString filename);
+    void Set_OutputParam_Filename(QString filename);
+    void Set_OutputSolution_Filename(QString filename);
+    QString Get_InputGrid_Filename() const;
+    QString Get_InputParam_Filename() const;
+    QString Get_InputSolution_Filename() const;
+    QString Get_OutputGrid_Filename() const;
+    QString Get_OutputParam_Filename() const;
+    QString Get_OutputSolution_Filename() const;
     void Set_OutputGrid_IOMode(int mode);
     void Set_OutputParam_IOMode(int mode);
     void Set_OutputSolution_IOMode(int mode);
@@ -60,4 +69,5 @@ protected :
     void Reset_DB();
 };
 
-#endif // DB_H
+#endif	/* _DB_H */
+
